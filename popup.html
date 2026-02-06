@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fill It Baby</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Fill It Baby</h1>
+
+    <div class="mode-selector">
+      <label>
+        <input type="radio" name="mode" value="webForm" checked> Fill Web Form
+      </label>
+      <label>
+        <input type="radio" name="mode" value="fillPdf"> Fill PDF
+      </label>
+    </div>
+
+    <div id="drop-zone" class="drop-zone">
+      <p>Drag &amp; drop a PDF here</p>
+      <p>or</p>
+      <input type="file" id="file-input" accept=".pdf" hidden>
+      <button id="browse-btn" class="btn">Browse Files</button>
+    </div>
+
+    <div id="file-info" class="file-info" hidden>
+      <span id="file-name"></span>
+      <button id="clear-file" class="btn-small">✕</button>
+    </div>
+
+    <button id="submit-btn" class="btn btn-primary" disabled>Extract &amp; Fill</button>
+
+    <div id="status" class="status" hidden></div>
+  </div>
+
+  <script src="pdf-lib.min.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

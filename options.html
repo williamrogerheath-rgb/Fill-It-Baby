@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fill It Baby — Options</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      color: #333;
+      background: #fafafa;
+      padding: 24px;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #1a1a1a;
+    }
+
+    h2 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #1a1a1a;
+    }
+
+    .section {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 4px;
+      color: #555;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    input[type="text"]:focus,
+    input[type="password"]:focus {
+      outline: none;
+      border-color: #4a90d9;
+      box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.15);
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 8px 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #fff;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn:hover {
+      background: #f0f0f0;
+    }
+
+    .btn-primary {
+      background: #4a90d9;
+      color: #fff;
+      border-color: #4a90d9;
+    }
+
+    .btn-primary:hover {
+      background: #3a7bc8;
+    }
+
+    .btn-danger {
+      color: #c81e1e;
+      border-color: #e0c0c0;
+      padding: 4px 10px;
+      font-size: 12px;
+    }
+
+    .btn-danger:hover {
+      background: #fde8e8;
+    }
+
+    .status-msg {
+      margin-top: 8px;
+      font-size: 13px;
+      color: #1a7a1a;
+    }
+
+    .status-msg.error {
+      color: #c81e1e;
+    }
+
+    /* Dealer defaults */
+    .dealer-list {
+      list-style: none;
+      margin-bottom: 12px;
+    }
+
+    .dealer-list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      border: 1px solid #e8e8e8;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      background: #fafafa;
+    }
+
+    .dealer-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .dealer-name {
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .dealer-address {
+      font-size: 12px;
+      color: #777;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .dealer-form {
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      padding: 12px;
+      margin-top: 8px;
+      background: #f9fbff;
+    }
+
+    .dealer-form .form-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .dealer-form .form-row > div {
+      flex: 1;
+    }
+
+    .dealer-form .form-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .empty-msg {
+      font-size: 13px;
+      color: #999;
+      font-style: italic;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Fill It Baby — Settings</h1>
+
+  <!-- API Key Section -->
+  <div class="section">
+    <h2>API Key</h2>
+    <label for="api-key">Claude API Key</label>
+    <input type="password" id="api-key" placeholder="sk-ant-...">
+    <button id="save-key-btn" class="btn btn-primary">Save Key</button>
+    <div id="key-status" class="status-msg" hidden></div>
+  </div>
+
+  <!-- Dealer Defaults Section -->
+  <div class="section">
+    <h2>Saved Dealers</h2>
+    <ul id="dealer-list" class="dealer-list"></ul>
+    <p id="no-dealers" class="empty-msg">No dealers saved yet.</p>
+    <button id="add-dealer-btn" class="btn">Add Dealer</button>
+
+    <div id="dealer-form" class="dealer-form" hidden>
+      <label for="dealer-name">Dealer Name</label>
+      <input type="text" id="dealer-name" placeholder="ABC Motors">
+
+      <label for="dealer-phone">Phone</label>
+      <input type="text" id="dealer-phone" placeholder="(555) 123-4567">
+
+      <label for="dealer-address">Address</label>
+      <input type="text" id="dealer-address" placeholder="123 Main St">
+
+      <div class="form-row">
+        <div>
+          <label for="dealer-city">City</label>
+          <input type="text" id="dealer-city" placeholder="Springfield">
+        </div>
+        <div>
+          <label for="dealer-state">State</label>
+          <input type="text" id="dealer-state" placeholder="MO">
+        </div>
+        <div>
+          <label for="dealer-zip">ZIP</label>
+          <input type="text" id="dealer-zip" placeholder="65801">
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button id="save-dealer-btn" class="btn btn-primary">Save</button>
+        <button id="cancel-dealer-btn" class="btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

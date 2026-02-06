@@ -1,0 +1,17 @@
+{
+  "name": "Missouri Notice of Lien",
+  "urlPattern": "dors.mo.gov/dmv/nol",
+  "fields": {
+    "ownerName": "input[name='ownerName']",
+    "ownerAddress": "input[name='ownerAddress']",
+    "ownerCity": "input[name='ownerCity']",
+    "ownerState": "input[name='ownerState']",
+    "ownerZip": "input[name='ownerZip']",
+    "vehicleYear": "input[name='vehicleYear']",
+    "vehicleMake": "input[name='vehicleMake']",
+    "vehicleModel": "input[name='vehicleModel']",
+    "vehicleVin": "input[name='vehicleVin']",
+    "lienholderName": "input[name='lienholderName']",
+    "lienholderAddress": "input[name='lienholderAddress']"
+  }
+}
