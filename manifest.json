@@ -20,7 +20,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["form-profiles/*.json"],
+      "resources": ["form-profiles/*.json", "lib/*", "templates/*"],
       "matches": ["<all_urls>"]
     }
   ]
