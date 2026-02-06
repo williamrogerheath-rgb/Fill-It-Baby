@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+  <title>Fill It Baby</title>
+</head>
+<body>
+  <div class="container">
+    <h1>Fill It Baby</h1>
+    <p class="subtitle">Upload a PDF to auto-fill this form</p>
+
+    <div id="drop-zone" class="drop-zone">
+      <div class="drop-zone-icon">&#128196;</div>
+      <p>Drag &amp; drop a PDF here</p>
+      <p class="drop-zone-hint">or click to browse</p>
+      <input type="file" id="file-input" accept="application/pdf" hidden>
+    </div>
+
+    <div id="status" class="status" hidden></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

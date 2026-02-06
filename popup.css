@@ -1,0 +1,87 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 320px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #fff;
+  color: #1a1a1a;
+  padding: 20px;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+h1 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 16px;
+}
+
+.drop-zone {
+  width: 100%;
+  border: 2px dashed #ccc;
+  border-radius: 10px;
+  padding: 32px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.drop-zone:hover,
+.drop-zone.drag-over {
+  border-color: #4a90d9;
+  background: #f0f6ff;
+}
+
+.drop-zone-icon {
+  font-size: 36px;
+  margin-bottom: 8px;
+}
+
+.drop-zone p {
+  font-size: 14px;
+  color: #444;
+}
+
+.drop-zone-hint {
+  font-size: 12px !important;
+  color: #999 !important;
+  margin-top: 4px;
+}
+
+.status {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  width: 100%;
+  text-align: center;
+}
+
+.status.info {
+  background: #e8f4fd;
+  color: #1a73a7;
+}
+
+.status.success {
+  background: #e6f9e6;
+  color: #1a7a1a;
+}
+
+.status.error {
+  background: #fde8e8;
+  color: #a71a1a;
+}
