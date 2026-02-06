@@ -45,6 +45,7 @@ function handleFile(file) {
     chrome.runtime.sendMessage(
       { action: 'extractPdf', pdfBase64: base64 },
       (response) => {
+        console.log('[Fill It Baby] Background response:', response);
         if (chrome.runtime.lastError) {
           showStatus('Error: ' + chrome.runtime.lastError.message, 'error');
           return;

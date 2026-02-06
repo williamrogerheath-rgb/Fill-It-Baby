@@ -3,6 +3,7 @@
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'fillForm') {
+    console.log('[Fill It Baby] Received fillForm data:', message.data);
     fillForm(message.data);
     sendResponse({ success: true });
   }
@@ -12,8 +13,10 @@ async function fillForm(data) {
   const profile = await loadMatchingProfile();
 
   if (profile) {
+    console.log('[Fill It Baby] Matched profile:', profile.name);
     fillWithProfile(data, profile);
   } else {
+    console.log('[Fill It Baby] No profile matched, using heuristics');
     fillWithHeuristics(data);
   }
 }
@@ -42,11 +45,18 @@ async function loadMatchingProfile() {
 function fillWithProfile(data, profile) {
   for (const [fieldName, fieldDef] of Object.entries(profile.fields)) {
     const value = data[fieldName];
-    if (value === undefined || value === null || value === '') continue;
+    if (value === undefined || value === null || value === '') {
+      console.log('[Fill It Baby] Field "%s" — no data, skipping', fieldName);
+      continue;
+    }
 
     const def = typeof fieldDef === 'string'
       ? { selector: fieldDef }
       : fieldDef;
+
+    const el = document.querySelector(def.selector);
+    console.log('[Fill It Baby] Field "%s" → selector "%s" — element %s, value: %o',
+      fieldName, def.selector, el ? 'FOUND' : 'NOT FOUND', value);
 
     const type = def.type || '';
 
