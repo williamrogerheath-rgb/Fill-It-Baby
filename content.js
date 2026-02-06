@@ -96,13 +96,6 @@ function activateLienholderManualEntry(fieldDef) {
       radio.dispatchEvent(new MouseEvent('click', { bubbles: true }));
       fireEvents(radio);
 
-      // Call the page's native handler directly if it exists
-      // Content scripts can't access page JS, so inject a small script
-      const script = document.createElement('script');
-      script.textContent = 'if (typeof disableLienHolderFDIC === "function") disableLienHolderFDIC();';
-      document.documentElement.appendChild(script);
-      script.remove();
-
       console.log('[Fill It Baby] Activated lienholderSelect "info" mode');
       return;
     }
