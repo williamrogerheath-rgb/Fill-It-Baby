@@ -22,7 +22,16 @@ async function handleExtract(pdfBase64, mode, sender) {
     return { error: 'API key not set. Open extension options to add your Claude API key.' };
   }
 
-  const extractedData = await callClaudeApi(apiKey, pdfBase64, mode);
+  // Get the active tab URL so we know which prompt to use
+  let tabUrl = '';
+  let tabId;
+  if (mode === 'webForm') {
+    tabId = sender.tab ? sender.tab.id : await getActiveTabId();
+    const tab = await chrome.tabs.get(tabId);
+    tabUrl = tab.url || '';
+  }
+
+  const extractedData = await callClaudeApi(apiKey, pdfBase64, mode, tabUrl);
 
   if (mode === 'fillPdf') {
     // Return data directly to popup.js for the review form
@@ -30,7 +39,6 @@ async function handleExtract(pdfBase64, mode, sender) {
   }
 
   // webForm mode: send extracted data to the content script in the active tab
-  const tabId = sender.tab ? sender.tab.id : await getActiveTabId();
   await chrome.tabs.sendMessage(tabId, {
     type: 'fillForm',
     data: extractedData
@@ -44,8 +52,15 @@ async function getActiveTabId() {
   return tab.id;
 }
 
-async function callClaudeApi(apiKey, pdfBase64, mode) {
-  const promptText = mode === 'fillPdf' ? getFillPdfPrompt() : getWebFormPrompt();
+async function callClaudeApi(apiKey, pdfBase64, mode, tabUrl) {
+  let promptText;
+  if (mode === 'fillPdf') {
+    promptText = getFillPdfPrompt();
+  } else if (tabUrl.includes('sa.dor.mo.gov/mv/trpa_dealers')) {
+    promptText = getTRPAPrompt();
+  } else {
+    promptText = getNOLPrompt();
+  }
 
   const response = await fetch(CLAUDE_API_URL, {
     method: 'POST',
@@ -94,9 +109,14 @@ async function callClaudeApi(apiKey, pdfBase64, mode) {
   return JSON.parse(jsonStr);
 }
 
-// === ORIGINAL MO NOL PROMPT — DO NOT MODIFY ===
-function getWebFormPrompt() {
+// === MO NOL PROMPT — DO NOT MODIFY ===
+function getNOLPrompt() {
   return 'Extract all form-relevant data from this PDF document for a Missouri Notice of Lien (NOL) form. Return ONLY valid JSON with the exact camelCase field names below. Do not include any explanation — just the JSON object.\n\nRequired fields and formatting rules:\n- ownerName: Format as "Last, First Middle" for primary owner. If there is a co-buyer, combine as "Last First Middle & Last First Middle" (both names in one field, separated by &)\n- ownerAddress: Street address only (no city, state, or zip)\n- ownerCity: City name only\n- ownerState: Two-letter state abbreviation\n- ownerZip: 5-digit zip code\n- ownerDLN: ALWAYS omit this field. Never extract a DLN or FEIN number.\n- vehicleType: ALWAYS set to "P" regardless of what type of vehicle it is.\n- vehicleMake: Vehicle manufacturer (e.g. "FORD", "CHEV", "TOYT")\n- vehicleYear: 4-digit year\n- vehicleVIN: Vehicle identification number, uppercase with no spaces\n- vehiclePurchaseDate: In MM/DD/YYYY format\n- vehicleLienDate: Security agreement date in MM/DD/YYYY format, if present\n- vehiclePreviousState: Two-letter state abbreviation if previously titled elsewhere\n- vehiclePreviousTitle: Previous title number if present\n- vehicleNetPrice: ALWAYS omit this field. Never extract or return a price.\n- lienholderSelect: ALWAYS set to "info" (manual entry mode).\n- lienholderType: Determine from the lienholder name: if name contains "BANK" set to "1", if name contains "CREDIT UNION" set to "2", otherwise set to "6" (Finance Company).\n- lienholderName: Lienholder business or individual name\n- lienholderAddress: Lienholder street address only\n- lienholderCity: Lienholder city\n- lienholderState: Lienholder two-letter state abbreviation\n- lienholderZip: Lienholder 5-digit zip code\n- loanNumber: Loan or account number if present\n- futureAdvances: "Yes" if subject to future advances, omit otherwise';
+}
+
+// === MO TRPA (TEMP TAG) PROMPT ===
+function getTRPAPrompt() {
+  return 'Extract all form-relevant data from this PDF document for a Missouri Temporary Registration Permit Application (TRPA). Return ONLY valid JSON with the exact camelCase field names below. Do not include any explanation — just the JSON object.\n\nRequired fields and formatting rules:\n- ownerType: "INDIVIDUAL" or "BUSINESS". Default to "INDIVIDUAL".\n- ownerLastName: Last name only\n- ownerFirstName: First name only\n- ownerMiddleName: Middle name if present, otherwise omit\n- ownerSuffix: Suffix (Jr, Sr, III, etc.) if present, otherwise omit\n- ownerDLN: Driver license number if present, otherwise omit\n- ownerAddress: Street address only (no city, state, or zip)\n- ownerCity: City name only\n- ownerState: Two-letter state abbreviation\n- ownerZip: Zip code (5 or 9 digit)\n- ownerPhone: Phone number formatted as (###) ###-####\n- ownerDOB: Date of birth in MM/DD/YYYY format if present\n- vehicleKOV: Map vehicle type to these exact values: "6" for Passenger/Car/Sedan/Coupe/Hatchback, "9" for Truck/Pickup, "4" for Motorcycle, "2" for Bus/Heavy Truck, "8" for Trailer, "7" for RV/Motorhome, "11" for Autocycle, "5" for Motortricycle. Default to "6" for standard consumer vehicles.\n- vehicleYear: 4-digit year\n- vehicleVIN: Vehicle identification number, uppercase, no spaces, max 17 characters\n- vehiclePurchaseDate: Purchase date in MM/DD/YYYY format\n- vehicleNetPrice: Sale price or net price as a number without $ sign or commas. Omit if not found.\n- dealerNo: Dealer number if present (e.g. "D3871"). Omit if not found.\n- proofOfOwnership: One of "Certificate of Origin", "Missouri Title", or "Out of State Title". Default to "Certificate of Origin" for new vehicles, "Out of State Title" for vehicles with out-of-state info, "Missouri Title" otherwise.';
 }
 
 // === FILL PDF PROMPT (for APPI GAP Cancellation) ===
