@@ -20,7 +20,7 @@ const templateManager = document.getElementById('template-manager');
 const genericReview = document.getElementById('generic-review');
 
 let selectedFile = null;
-let currentTemplate = null; // holds the scanned template being used for generic fill
+let currentTemplate = null;
 
 // --- Helpers ---
 function getMode() {
@@ -52,7 +52,6 @@ document.querySelectorAll('input[name="mode"]').forEach(radio => {
   radio.addEventListener('change', () => {
     const mode = getMode();
     templateBar.hidden = mode !== 'fillPdf';
-    // Reset views
     templateManager.hidden = true;
     pdfReview.hidden = true;
     genericReview.hidden = true;
@@ -148,14 +147,14 @@ submitBtn.addEventListener('click', async () => {
   if (!selectedFile) return;
 
   const mode = getMode();
+  const selectedTemplate = mode === 'fillPdf' ? templateSelect.value : '';
+  console.log('[Fill It Baby] Submit clicked. Mode:', mode, 'Template:', selectedTemplate);
+
   submitBtn.disabled = true;
   showStatus('Extracting data from PDF...', 'info');
 
   try {
     const base64 = await fileToBase64(selectedFile);
-
-    // Determine which template is selected for fillPdf mode
-    const selectedTemplate = mode === 'fillPdf' ? templateSelect.value : '';
 
     const response = await chrome.runtime.sendMessage({
       type: 'extractPdf',
@@ -164,6 +163,8 @@ submitBtn.addEventListener('click', async () => {
       template: selectedTemplate
     });
 
+    console.log('[Fill It Baby] Response received:', response);
+
     if (response.error) {
       showStatus('Error: ' + response.error, 'error');
       submitBtn.disabled = false;
@@ -171,16 +172,24 @@ submitBtn.addEventListener('click', async () => {
     }
 
     if (mode === 'fillPdf' && response.data) {
+      console.log('[Fill It Baby] fillPdf mode, template:', selectedTemplate);
+
       if (selectedTemplate === 'APPI_CANCELLATION') {
         showReviewForm(response.data);
       } else if (selectedTemplate) {
-        // Generic template
-        const templates = await getTemplates();
-        const tmpl = templates.find(t => t.id === selectedTemplate);
-        if (tmpl) {
-          showGenericReview(response.data, tmpl);
-        } else {
-          showStatus('Template not found.', 'error');
+        console.log('[Fill It Baby] Routing to generic review...');
+        try {
+          const templates = await getTemplates();
+          const tmpl = templates.find(t => t.id === selectedTemplate);
+          console.log('[Fill It Baby] Found template:', tmpl ? tmpl.name : 'NOT FOUND');
+          if (tmpl) {
+            showGenericReview(response.data, tmpl);
+          } else {
+            showStatus('Template not found in storage.', 'error');
+          }
+        } catch (tmplErr) {
+          console.error('[Fill It Baby] Template load error:', tmplErr);
+          showStatus('Error loading template: ' + tmplErr.message, 'error');
         }
       } else {
         showStatus('Please select a template first.', 'error');
@@ -191,6 +200,7 @@ submitBtn.addEventListener('click', async () => {
       showStatus('No data returned from extraction.', 'error');
     }
   } catch (err) {
+    console.error('[Fill It Baby] Submit error:', err);
     showStatus('Error: ' + err.message, 'error');
   }
 
@@ -203,7 +213,6 @@ function showReviewForm(data) {
   uploadSection.hidden = true;
   pdfReview.hidden = false;
 
-  // Consumer
   setVal('r-consumerName', data.consumerName);
   setVal('r-consumerName2', data.consumerName2);
   setVal('r-vin', data.vin);
@@ -212,7 +221,6 @@ function showReviewForm(data) {
   setVal('r-state', data.consumerState);
   setVal('r-zip', data.consumerZip);
 
-  // Cancellation
   setVal('r-cancelDate', data.cancelDate);
   if (data.cancelReason) {
     document.getElementById('r-cancelReason').value = data.cancelReason;
@@ -221,7 +229,6 @@ function showReviewForm(data) {
     document.getElementById('r-refundTo').value = data.refundTo;
   }
 
-  // Lender
   setVal('r-lenderName', data.lenderName);
   setVal('r-lenderPhone', data.lenderPhone);
   setVal('r-lenderAddress', data.lenderAddress);
@@ -229,7 +236,6 @@ function showReviewForm(data) {
   setVal('r-lenderState', data.lenderState);
   setVal('r-lenderZip', data.lenderZip);
 
-  // Dealer
   setVal('r-dealerName', data.dealerName);
   setVal('r-dealerPhone', data.dealerPhone);
   setVal('r-dealerAddress', data.dealerAddress);
@@ -237,7 +243,6 @@ function showReviewForm(data) {
   setVal('r-dealerState', data.dealerState);
   setVal('r-dealerZip', data.dealerZip);
 
-  // Signature dates default to today
   const today = new Date();
   const todayStr = String(today.getMonth() + 1).padStart(2, '0') + '/' +
                    String(today.getDate()).padStart(2, '0') + '/' +
@@ -245,7 +250,6 @@ function showReviewForm(data) {
   setVal('r-consumerDate1', todayStr);
   setVal('r-dealerDate1', todayStr);
 
-  // Load dealer defaults if dealer wasn't extracted
   if (!data.dealerName) {
     loadDealerDefaults();
   }
@@ -380,12 +384,11 @@ generateBtn.addEventListener('click', async () => {
 
 
 // ============================================================
-// TEMPLATE MANAGEMENT (NEW)
+// TEMPLATE MANAGEMENT
 // ============================================================
 
-// --- Storage helpers ---
 function getTemplates() {
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     chrome.storage.local.get('pdfTemplates', result => {
       resolve(result.pdfTemplates || []);
     });
@@ -398,13 +401,10 @@ function saveTemplates(templates) {
   });
 }
 
-// --- Load templates into dropdown on startup ---
 async function refreshTemplateDropdown() {
   const templates = await getTemplates();
-  // Remove old dynamic options (keep APPI and the placeholder)
   const opts = templateSelect.querySelectorAll('option[data-dynamic]');
   opts.forEach(o => o.remove());
-  // Add saved templates
   templates.forEach(t => {
     const opt = document.createElement('option');
     opt.value = t.id;
@@ -446,16 +446,49 @@ document.getElementById('tm-file-input').addEventListener('change', async (e) =>
     const form = pdfDoc.getForm();
     const fields = form.getFields();
 
-    scannedFields = fields.map(f => ({
-      name: f.getName(),
-      type: f.constructor.name // PDFTextField, PDFCheckBox, PDFRadioGroup, etc.
-    })).filter(f => !f.type.includes('Signature')); // skip signature fields
+    // Detect field type by trying methods — constructor.name doesn't survive storage
+    scannedFields = [];
+    for (const f of fields) {
+      const name = f.getName();
+      let type = 'text';
+      try {
+        // If getText exists and doesn't throw, it's a text field
+        form.getTextField(name);
+        type = 'text';
+      } catch (e1) {
+        try {
+          form.getCheckBox(name);
+          type = 'checkbox';
+        } catch (e2) {
+          try {
+            form.getRadioGroup(name);
+            type = 'radio';
+          } catch (e3) {
+            try {
+              form.getDropdown(name);
+              type = 'dropdown';
+            } catch (e4) {
+              try {
+                form.getSignature(name);
+                type = 'signature';
+              } catch (e5) {
+                type = 'other';
+              }
+            }
+          }
+        }
+      }
+      if (type !== 'signature') {
+        scannedFields.push({ name: name, type: type });
+      }
+    }
+
+    const textCount = scannedFields.filter(f => f.type === 'text').length;
+    const checkCount = scannedFields.filter(f => f.type === 'checkbox' || f.type === 'radio').length;
 
     document.getElementById('tm-scan-result').hidden = false;
     document.getElementById('tm-field-count').textContent =
-      scannedFields.length + ' fillable fields found (' +
-      scannedFields.filter(f => f.type.includes('Text')).length + ' text, ' +
-      scannedFields.filter(f => f.type.includes('Check') || f.type.includes('Radio')).length + ' checkbox/radio)';
+      scannedFields.length + ' fillable fields found (' + textCount + ' text, ' + checkCount + ' checkbox/radio)';
     document.getElementById('tm-name').value = file.name.replace('.pdf', '').replace(/[_-]/g, ' ');
     hideStatus();
   } catch (err) {
@@ -475,9 +508,14 @@ document.getElementById('tm-save-btn').addEventListener('click', async () => {
     return;
   }
 
-  // Store the template PDF as base64 in chrome.storage.local
-  const base64 = btoa(String.fromCharCode(...scannedPdfBytes));
+  let binary = '';
+  for (let i = 0; i < scannedPdfBytes.length; i++) {
+    binary += String.fromCharCode(scannedPdfBytes[i]);
+  }
+  const base64 = btoa(binary);
   const id = 'tmpl_' + Date.now();
+
+  console.log('[Fill It Baby] Saving template:', name, 'Fields:', scannedFields.length, 'Types:', JSON.stringify(scannedFields.slice(0,3)));
 
   const templates = await getTemplates();
   templates.push({
@@ -488,7 +526,6 @@ document.getElementById('tm-save-btn').addEventListener('click', async () => {
   });
   await saveTemplates(templates);
 
-  // Reset scan UI
   scannedFields = [];
   scannedPdfBytes = null;
   document.getElementById('tm-scan-result').hidden = true;
@@ -531,10 +568,11 @@ async function refreshTemplateList() {
 }
 
 // ============================================================
-// GENERIC REVIEW & GENERATE (NEW)
+// GENERIC REVIEW & GENERATE
 // ============================================================
 
 function showGenericReview(data, template) {
+  console.log('[Fill It Baby] showGenericReview called with', Object.keys(data).length, 'data keys');
   hideStatus();
   uploadSection.hidden = true;
   genericReview.hidden = false;
@@ -545,8 +583,8 @@ function showGenericReview(data, template) {
   const container = document.getElementById('gen-fields');
   container.innerHTML = '';
 
-  // Build a review field for each text field in the template
-  const textFields = template.fields.filter(f => f.type.includes('Text'));
+  const textFields = template.fields.filter(f => f.type === 'text');
+  console.log('[Fill It Baby] Text fields:', textFields.length);
 
   textFields.forEach(f => {
     const div = document.createElement('div');
@@ -560,7 +598,6 @@ function showGenericReview(data, template) {
     input.id = 'gen-' + f.name.replace(/[^a-zA-Z0-9]/g, '_');
     input.setAttribute('data-field-name', f.name);
 
-    // Try to match extracted data to this field
     const matched = matchField(f.name, data);
     if (matched !== null) {
       input.value = matched;
@@ -571,8 +608,7 @@ function showGenericReview(data, template) {
     container.appendChild(div);
   });
 
-  // Show checkboxes too
-  const checkFields = template.fields.filter(f => f.type.includes('Check') || f.type.includes('Radio'));
+  const checkFields = template.fields.filter(f => f.type === 'checkbox' || f.type === 'radio');
   if (checkFields.length > 0) {
     const section = document.createElement('div');
     section.className = 'review-section';
@@ -602,22 +638,18 @@ function showGenericReview(data, template) {
   }
 }
 
-// Smart field matcher — matches extracted data keys to template field names
 function matchField(fieldName, data) {
   const fn = fieldName.toLowerCase().replace(/[^a-z0-9]/g, '');
 
-  // Direct key match
   for (const [key, val] of Object.entries(data)) {
     if (key.toLowerCase().replace(/[^a-z0-9]/g, '') === fn) return String(val);
   }
 
-  // Partial match
   for (const [key, val] of Object.entries(data)) {
     const k = key.toLowerCase().replace(/[^a-z0-9]/g, '');
     if (fn.includes(k) || k.includes(fn)) return String(val);
   }
 
-  // Word overlap match
   const fieldWords = fieldName.toLowerCase().split(/[^a-z]+/).filter(w => w.length > 2);
   let bestMatch = null;
   let bestScore = 0;
@@ -643,7 +675,6 @@ document.getElementById('gen-generate-btn').addEventListener('click', async () =
 
     const { PDFDocument } = PDFLib;
 
-    // Load template from stored base64
     const binaryStr = atob(currentTemplate.pdfBase64);
     const bytes = new Uint8Array(binaryStr.length);
     for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
@@ -651,7 +682,6 @@ document.getElementById('gen-generate-btn').addEventListener('click', async () =
     const pdfDoc = await PDFDocument.load(bytes);
     const form = pdfDoc.getForm();
 
-    // Fill text fields
     const textInputs = document.querySelectorAll('#gen-fields input[type="text"]');
     textInputs.forEach(input => {
       const fieldName = input.getAttribute('data-field-name');
@@ -662,7 +692,6 @@ document.getElementById('gen-generate-btn').addEventListener('click', async () =
       }
     });
 
-    // Fill checkboxes
     const checkInputs = document.querySelectorAll('#gen-fields input[type="checkbox"]');
     checkInputs.forEach(input => {
       const fieldName = input.getAttribute('data-field-name');
