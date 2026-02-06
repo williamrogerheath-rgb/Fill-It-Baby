@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Fill It Baby — PDF Filler</title>
+  <link rel="stylesheet" href="pdf-filler.css">
+</head>
+<body>
+  <header>
+    <h1>Fill It Baby — APPI GAP Cancellation</h1>
+    <p class="subtitle">Review and edit the extracted data, then generate the filled PDF.</p>
+  </header>
+
+  <main>
+    <!-- Consumer Info -->
+    <section>
+      <h2>Consumer Information</h2>
+      <div class="field-grid">
+        <div class="field">
+          <label for="consumerName">Consumer Name</label>
+          <input type="text" id="consumerName" data-pdf-field="Consumer Name">
+        </div>
+        <div class="field">
+          <label for="consumerName2">Consumer Name (Co-Buyer)</label>
+          <input type="text" id="consumerName2" data-pdf-field="Consumer Name_2">
+        </div>
+        <div class="field">
+          <label for="vin">VIN</label>
+          <input type="text" id="vin" data-pdf-field="VIN">
+        </div>
+        <div class="field">
+          <label for="address">Street Address</label>
+          <input type="text" id="address" data-pdf-field="Address">
+        </div>
+        <div class="field">
+          <label for="city">City</label>
+          <input type="text" id="city" data-pdf-field="City">
+        </div>
+        <div class="field field-sm">
+          <label for="state">State</label>
+          <input type="text" id="state" data-pdf-field="State" maxlength="2">
+        </div>
+        <div class="field field-sm">
+          <label for="zip">Zip</label>
+          <input type="text" id="zip" data-pdf-field="Zip">
+        </div>
+      </div>
+    </section>
+
+    <!-- Cancellation Details -->
+    <section>
+      <h2>Cancellation Details</h2>
+      <div class="field-grid">
+        <div class="field">
+          <label for="requestedDateOfCancellation">Requested Date of Cancellation</label>
+          <input type="text" id="requestedDateOfCancellation" data-pdf-field="Requested Date of Cancellation" placeholder="MM/DD/YYYY">
+        </div>
+      </div>
+      <h3>Reason for Cancellation</h3>
+      <div class="checkbox-grid">
+        <label class="checkbox-label">
+          <input type="checkbox" id="customerRequest" data-pdf-field="Customer Request">
+          Customer Request
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="dealUnwind" data-pdf-field="Deal Unwind">
+          Deal Unwind
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="earlyPayoff" data-pdf-field="Early Payoff">
+          Early Payoff
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="rewrite" data-pdf-field="ReWrite">
+          Rewrite
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="repossession" data-pdf-field="Repossession">
+          Repossession
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="tradeIn" data-pdf-field="TradeIn">
+          Trade-In
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="totalLoss" data-pdf-field="Total Loss  No Claim Filed">
+          Total Loss / No Claim Filed
+        </label>
+      </div>
+      <h3>Refund To</h3>
+      <div class="checkbox-grid">
+        <label class="checkbox-label">
+          <input type="checkbox" id="refundDealer" data-pdf-field="Dea">
+          Dealer
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="refundLienHolder" data-pdf-field="Lien Holder">
+          Lien Holder
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="refundConsumer" data-pdf-field="Consumer Proof of payoff from l">
+          Consumer (Proof of payoff)
+        </label>
+      </div>
+    </section>
+
+    <!-- Lender/Lessor -->
+    <section>
+      <h2>Lender / Lessor</h2>
+      <div class="field-grid">
+        <div class="field">
+          <label for="lenderName">Lender/Lessor Name</label>
+          <input type="text" id="lenderName" data-pdf-field="LenderLessor Name">
+        </div>
+        <div class="field">
+          <label for="lenderPhone">Telephone Number</label>
+          <input type="text" id="lenderPhone" data-pdf-field="Telephone Number">
+        </div>
+        <div class="field">
+          <label for="lenderAddress">Street Address</label>
+          <input type="text" id="lenderAddress" data-pdf-field="Address_2">
+        </div>
+        <div class="field">
+          <label for="lenderCity">City</label>
+          <input type="text" id="lenderCity" data-pdf-field="City_2">
+        </div>
+        <div class="field field-sm">
+          <label for="lenderState">State</label>
+          <input type="text" id="lenderState" data-pdf-field="State_2" maxlength="2">
+        </div>
+        <div class="field field-sm">
+          <label for="lenderZip">Zip</label>
+          <input type="text" id="lenderZip" data-pdf-field="Zip_2">
+        </div>
+      </div>
+    </section>
+
+    <!-- Dealer Info -->
+    <section>
+      <h2>Dealer Information</h2>
+      <div class="field-grid">
+        <div class="field">
+          <label for="dealerName">Dealer Name</label>
+          <input type="text" id="dealerName" data-pdf-field="Dealer Name">
+        </div>
+        <div class="field">
+          <label for="dealerPhone">Telephone Number</label>
+          <input type="text" id="dealerPhone" data-pdf-field="Telephone Number_2">
+        </div>
+        <div class="field">
+          <label for="dealerAddress">Street Address</label>
+          <input type="text" id="dealerAddress" data-pdf-field="Address_3">
+        </div>
+        <div class="field">
+          <label for="dealerCity">City</label>
+          <input type="text" id="dealerCity" data-pdf-field="City_3">
+        </div>
+        <div class="field field-sm">
+          <label for="dealerState">State</label>
+          <input type="text" id="dealerState" data-pdf-field="State_3" maxlength="2">
+        </div>
+        <div class="field field-sm">
+          <label for="dealerZip">Zip</label>
+          <input type="text" id="dealerZip" data-pdf-field="Zip_3">
+        </div>
+      </div>
+    </section>
+
+    <!-- Signature Dates -->
+    <section>
+      <h2>Signature Dates</h2>
+      <div class="field-grid">
+        <div class="field">
+          <label for="consumerSignatureDate1">Consumer Signature Date</label>
+          <input type="text" id="consumerSignatureDate1" data-pdf-field="Date" placeholder="MM/DD/YYYY">
+        </div>
+        <div class="field">
+          <label for="dealerSignatureDate1">Dealer Signature Date</label>
+          <input type="text" id="dealerSignatureDate1" data-pdf-field="Date_2" placeholder="MM/DD/YYYY">
+        </div>
+        <div class="field">
+          <label for="consumerSignatureDate2">Consumer Signature Date 2</label>
+          <input type="text" id="consumerSignatureDate2" data-pdf-field="Date_3" placeholder="MM/DD/YYYY">
+        </div>
+        <div class="field">
+          <label for="dealerSignatureDate2">Dealer Signature Date 2</label>
+          <input type="text" id="dealerSignatureDate2" data-pdf-field="Date_4" placeholder="MM/DD/YYYY">
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <button id="generateBtn" class="generate-btn">Generate PDF</button>
+  </footer>
+
+  <script src="lib/pdf-lib.min.js"></script>
+  <script src="pdf-filler.js"></script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Fill It Baby</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <h1>Fill It Baby</h1>
+
+  <!-- Mode Toggle -->
+  <div class="mode-toggle">
+    <button class="mode-tab active" data-mode="webForm">Fill Web Form</button>
+    <button class="mode-tab" data-mode="fillPdf">Fill PDF</button>
+  </div>
+
+  <!-- PDF Template selector (fillPdf mode only) -->
+  <div id="templateSection" class="template-section hidden">
+    <label for="templateSelect">PDF Template</label>
+    <select id="templateSelect">
+      <option value="appi_cancellation">APPI GAP Cancellation</option>
+    </select>
+  </div>
+
+  <!-- Upload Zone -->
+  <div id="dropZone" class="drop-zone">
+    <p>Drag & drop a PDF here</p>
+    <p class="or">or</p>
+    <label class="file-label">
+      Browse files
+      <input type="file" id="fileInput" accept=".pdf" hidden>
+    </label>
+  </div>
+
+  <div id="fileName" class="file-name hidden"></div>
+
+  <button id="actionBtn" class="action-btn" disabled>Fill Form</button>
+
+  <div id="status" class="status hidden"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

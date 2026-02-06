@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "Fill It Baby",
+  "version": "1.0.0",
+  "description": "Extract data from PDFs using Claude API and auto-fill web forms or generate filled PDFs.",
+  "permissions": ["activeTab", "storage", "scripting"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Fill It Baby"
+  },
+  "options_page": "options.html",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "form-profiles/*.json",
+        "pdf-filler.html",
+        "pdf-filler.css",
+        "pdf-filler.js",
+        "lib/*",
+        "templates/*"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

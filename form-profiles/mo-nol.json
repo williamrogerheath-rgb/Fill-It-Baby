@@ -1,0 +1,14 @@
+{
+  "name": "Missouri Notice of Lien",
+  "urlPattern": "dors.mo.gov/dmv/nol",
+  "fields": {
+    "ownerName": "input[name='ownerName']",
+    "vin": "input[name='vin']",
+    "address": "input[name='address']",
+    "city": "input[name='city']",
+    "state": "input[name='state']",
+    "zip": "input[name='zip']",
+    "lienholderName": "input[name='lienholderName']",
+    "lienholderAddress": "input[name='lienholderAddress']"
+  }
+}
