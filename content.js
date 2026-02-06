@@ -14,13 +14,7 @@ async function fillForm(data) {
 
   if (profile) {
     console.log('[Fill It Baby] Matched profile:', profile.name);
-
-    // TRPA needs special handling for ASP.NET postback dropdowns
-    if (profile.urlPattern && profile.urlPattern.includes('trpa_dealers')) {
-      await fillTRPA(data, profile);
-    } else {
-      fillWithProfile(data, profile);
-    }
+    fillWithProfile(data, profile);
   } else {
     console.log('[Fill It Baby] No profile matched, using heuristics');
     fillWithHeuristics(data);
@@ -47,133 +41,6 @@ async function loadMatchingProfile() {
   }
   return null;
 }
-
-// --- TRPA-specific fill (handles ASP.NET postbacks) ---
-
-async function fillTRPA(data, profile) {
-  console.log('[Fill It Baby] Using TRPA fill mode');
-
-  // Fields that DON'T trigger postbacks — fill these immediately
-  const immediateFields = [
-    'ownerType', 'ownerDLN', 'ownerLastName', 'ownerFirstName',
-    'ownerMiddleName', 'ownerSuffix', 'ownerAddress', 'ownerCity',
-    'ownerState', 'ownerZip', 'ownerPhone', 'ownerDOB',
-    'vehicleYear', 'vehicleVIN', 'vehiclePurchaseDate', 'vehicleNetPrice'
-  ];
-
-  for (const fieldName of immediateFields) {
-    const value = data[fieldName];
-    if (value === undefined || value === null || value === '') continue;
-    const fieldDef = profile.fields[fieldName];
-    if (!fieldDef) continue;
-    const def = typeof fieldDef === 'string' ? { selector: fieldDef } : fieldDef;
-    const type = def.type || '';
-    if (type === 'select') {
-      fillSelect(def, value);
-    } else {
-      fillTextField(def, value);
-    }
-  }
-
-  // Step 1: Set Kind of Vehicle and trigger its postback
-  if (data.vehicleKOV && profile.fields.vehicleKOV) {
-    const el = document.querySelector(profile.fields.vehicleKOV.selector);
-    if (el) {
-      el.value = String(data.vehicleKOV);
-      triggerASPPostback(el);
-      console.log('[Fill It Baby] KOV set to %s, triggered postback', data.vehicleKOV);
-    }
-  }
-
-  // Wait for KOV postback
-  await waitForPostback(2000);
-
-  // Step 2: Set Choose by Make/NCIC to "Make" and trigger postback
-  if (data.vehicleMakeType && profile.fields.vehicleMakeType) {
-    const el = document.querySelector(profile.fields.vehicleMakeType.selector);
-    if (el) {
-      el.value = String(data.vehicleMakeType);
-      triggerASPPostback(el);
-      console.log('[Fill It Baby] MakeType set to %s, triggered postback', data.vehicleMakeType);
-    }
-  }
-
-  // Wait for Make list to load
-  await waitForPostback(2500);
-
-  // Step 3: Select the actual make
-  if (data.vehicleMakeNCIC && profile.fields.vehicleMakeNCIC) {
-    const el = document.querySelector(profile.fields.vehicleMakeNCIC.selector);
-    if (el) {
-      console.log('[Fill It Baby] Make/NCIC dropdown has %d options', el.options.length);
-      fillSelect(profile.fields.vehicleMakeNCIC, data.vehicleMakeNCIC);
-      console.log('[Fill It Baby] Make/NCIC set to %s', data.vehicleMakeNCIC);
-    }
-  }
-
-  // Step 4: Set Dealer No and Proof of Ownership
-  await waitForPostback(500);
-
-  if (data.dealerNo && profile.fields.dealerNo) {
-    fillSelect(profile.fields.dealerNo, data.dealerNo);
-  }
-  if (data.proofOfOwnership && profile.fields.proofOfOwnership) {
-    fillSelect(profile.fields.proofOfOwnership, data.proofOfOwnership);
-  }
-
-  // Re-fill text fields that postbacks may have cleared
-  for (const fieldName of immediateFields) {
-    const value = data[fieldName];
-    if (value === undefined || value === null || value === '') continue;
-    const fieldDef = profile.fields[fieldName];
-    if (!fieldDef) continue;
-    const def = typeof fieldDef === 'string' ? { selector: fieldDef } : fieldDef;
-    const el = document.querySelector(def.selector);
-    if (el && !el.value) {
-      const type = def.type || '';
-      if (type === 'select') {
-        fillSelect(def, value);
-      } else {
-        fillTextField(def, value);
-      }
-    }
-  }
-}
-
-// Trigger ASP.NET postback by calling the element's onchange handler directly
-function triggerASPPostback(el) {
-  // Method 1: Call the inline onchange if it exists
-  if (el.onchange) {
-    el.onchange();
-    return;
-  }
-  // Method 2: Fire change event
-  el.dispatchEvent(new Event('change', { bubbles: true }));
-}
-
-// Wait for ASP.NET UpdatePanel to complete
-function waitForPostback(ms) {
-  return new Promise(resolve => {
-    // Try to hook into ASP.NET's PageRequestManager if available
-    try {
-      if (typeof Sys !== 'undefined' && Sys.WebForms && Sys.WebForms.PageRequestManager) {
-        const prm = Sys.WebForms.PageRequestManager.getInstance();
-        const handler = function() {
-          prm.remove_endRequest(handler);
-          resolve();
-        };
-        prm.add_endRequest(handler);
-        // Fallback timeout in case endRequest never fires
-        setTimeout(resolve, ms);
-        return;
-      }
-    } catch(e) {}
-    // Fallback: just wait
-    setTimeout(resolve, ms);
-  });
-}
-
-// --- Standard profile fill (NOL and others) ---
 
 function fillWithProfile(data, profile) {
   // If lienholderSelect is "info", activate manual entry mode first
