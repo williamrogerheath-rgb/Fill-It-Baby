@@ -1,5 +1,112 @@
 {
   "name": "Missouri Notice of Lien",
   "urlPattern": "dors.mo.gov/dmv/nol",
-  "fields": {}
+  "fields": {
+    "ownerName": {
+      "selector": "input[name='ownerName']",
+      "maxlength": 38
+    },
+    "ownerAddress": {
+      "selector": "input[name='ownerAddress']",
+      "maxlength": 20
+    },
+    "ownerCity": {
+      "selector": "input[name='ownerCity']",
+      "maxlength": 25
+    },
+    "ownerState": {
+      "selector": "select[name='ownerState']",
+      "type": "select"
+    },
+    "ownerZip": {
+      "selector": "input[name='ownerZip']",
+      "maxlength": 5
+    },
+    "ownerDLN": {
+      "selector": "input[name='ownerDLN']",
+      "optional": true
+    },
+    "vehicleType": {
+      "selector": "select[name='vehicleType']",
+      "type": "select"
+    },
+    "vehicleMake": {
+      "selector": "select[name='vehicleMake']",
+      "type": "select+text",
+      "textFallback": "input[name='vehicleOtherMake']"
+    },
+    "vehicleYear": {
+      "selector": "input[name='vehicleYear']",
+      "maxlength": 4
+    },
+    "vehicleVIN": {
+      "selector": "input[name='vehicleVIN']",
+      "maxlength": 19
+    },
+    "vehiclePurchaseDate": {
+      "selector": "input[name='vehiclePurchaseDate']",
+      "type": "date",
+      "format": "mmddyyyy"
+    },
+    "vehicleLienDate": {
+      "selector": "input[name='vehicleLienDate']",
+      "type": "date",
+      "format": "mmddyyyy",
+      "optional": true
+    },
+    "vehiclePreviousState": {
+      "selector": "select[name='vehiclePreviousState']",
+      "type": "select",
+      "optional": true
+    },
+    "vehiclePreviousTitle": {
+      "selector": "input[name='vehiclePreviousTitle']",
+      "optional": true
+    },
+    "vehicleNetPrice": {
+      "selector": "input[name='vehicleNetPrice']",
+      "maxlength": 7,
+      "optional": true
+    },
+    "lienholderSelect": {
+      "selector": "input[name='lienholderSelect']",
+      "type": "radio"
+    },
+    "lienholderFDIC": {
+      "selector": "input[name='lienholderFDIC']",
+      "maxlength": 20
+    },
+    "lienholderType": {
+      "selector": "input[name='lienholderType']",
+      "type": "radio"
+    },
+    "lienholderName": {
+      "selector": "input[name='lienholderName']",
+      "maxlength": 20
+    },
+    "lienholderAddress": {
+      "selector": "input[name='lienholderAddress']",
+      "maxlength": 20
+    },
+    "lienholderCity": {
+      "selector": "input[name='lienholderCity']",
+      "maxlength": 25
+    },
+    "lienholderState": {
+      "selector": "select[name='lienholderState']",
+      "type": "select"
+    },
+    "lienholderZip": {
+      "selector": "input[name='lienholderZip']",
+      "maxlength": 5
+    },
+    "futureAdvances": {
+      "selector": "input[name='futureAdvances']",
+      "type": "checkbox"
+    },
+    "loanNumber": {
+      "selector": "input[name='loanNumber']",
+      "maxlength": 25
+    }
+  }
 }
