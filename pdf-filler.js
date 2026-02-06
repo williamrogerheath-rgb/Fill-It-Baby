@@ -18,11 +18,11 @@ const FIELD_MAP = {
   consumerName: 'consumerName',
   consumerName2: 'consumerName2',
   vin: 'vin',
-  address: 'address',
-  city: 'city',
-  state: 'state',
-  zip: 'zip',
-  requestedDateOfCancellation: 'requestedDateOfCancellation',
+  consumerAddress: 'address',
+  consumerCity: 'city',
+  consumerState: 'state',
+  consumerZip: 'zip',
+  cancelDate: 'requestedDateOfCancellation',
   lenderName: 'lenderName',
   lenderPhone: 'lenderPhone',
   lenderAddress: 'lenderAddress',
@@ -34,9 +34,7 @@ const FIELD_MAP = {
   dealerAddress: 'dealerAddress',
   dealerCity: 'dealerCity',
   dealerState: 'dealerState',
-  dealerZip: 'dealerZip',
-  consumerSignatureDate: 'consumerSignatureDate1',
-  dealerSignatureDate: 'dealerSignatureDate1'
+  dealerZip: 'dealerZip'
 };
 
 // Map cancellation reason values to checkbox IDs
@@ -44,7 +42,7 @@ const REASON_MAP = {
   customerRequest: 'customerRequest',
   dealUnwind: 'dealUnwind',
   earlyPayoff: 'earlyPayoff',
-  rewrite: 'rewrite',
+  reWrite: 'rewrite',
   repossession: 'repossession',
   tradeIn: 'tradeIn',
   totalLoss: 'totalLoss'
@@ -53,7 +51,7 @@ const REASON_MAP = {
 // Map refund-to values to checkbox IDs
 const REFUND_MAP = {
   dealer: 'refundDealer',
-  lienHolder: 'refundLienHolder',
+  lienholder: 'refundLienHolder',
   consumer: 'refundConsumer'
 };
 
@@ -68,8 +66,8 @@ function prefillForm(data) {
   }
 
   // Fill cancellation reason checkbox
-  if (data.cancellationReason) {
-    const checkboxId = REASON_MAP[data.cancellationReason];
+  if (data.cancelReason) {
+    const checkboxId = REASON_MAP[data.cancelReason];
     if (checkboxId) {
       const cb = document.getElementById(checkboxId);
       if (cb) cb.checked = true;
@@ -85,16 +83,12 @@ function prefillForm(data) {
     }
   }
 
-  // Copy consumer signature date to both date fields
-  if (data.consumerSignatureDate) {
-    const d2 = document.getElementById('consumerSignatureDate2');
-    if (d2 && !d2.value) d2.value = data.consumerSignatureDate;
-  }
-
-  // Copy dealer signature date to both date fields
-  if (data.dealerSignatureDate) {
-    const d2 = document.getElementById('dealerSignatureDate2');
-    if (d2 && !d2.value) d2.value = data.dealerSignatureDate;
+  // Use cancelDate for signature date fields if no separate signature dates
+  if (data.cancelDate) {
+    const sigDate1 = document.getElementById('consumerSignatureDate1');
+    if (sigDate1 && !sigDate1.value) sigDate1.value = data.cancelDate;
+    const sigDate2 = document.getElementById('consumerSignatureDate2');
+    if (sigDate2 && !sigDate2.value) sigDate2.value = data.cancelDate;
   }
 }
 

@@ -86,6 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const response = await chrome.runtime.sendMessage({
         action: 'extractPdf',
         pdfBase64: base64,
+        mode: currentMode,
         template
       });
 
