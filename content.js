@@ -75,53 +75,44 @@ async function fillTRPA(data, profile) {
     }
   }
 
-  // Step 1: Set Kind of Vehicle (triggers postback)
+  // Step 1: Set Kind of Vehicle and trigger its postback
   if (data.vehicleKOV && profile.fields.vehicleKOV) {
-    const kovDef = profile.fields.vehicleKOV;
-    const el = document.querySelector(kovDef.selector);
+    const el = document.querySelector(profile.fields.vehicleKOV.selector);
     if (el) {
       el.value = String(data.vehicleKOV);
-      // Trigger ASP.NET postback via __doPostBack
-      const script = document.createElement('script');
-      script.textContent = "__doPostBack('ctl00$ContentPlaceHolder1$ddlKOV','')";
-      document.head.appendChild(script);
-      script.remove();
+      triggerASPPostback(el);
       console.log('[Fill It Baby] KOV set to %s, triggered postback', data.vehicleKOV);
     }
   }
 
-  // Step 2: Set Choose by Make/NCIC to "Make" (triggers postback to load makes)
-  if (data.vehicleMakeType && profile.fields.vehicleMakeType) {
-    // Wait for KOV postback to complete
-    await new Promise(r => setTimeout(r, 2000));
+  // Wait for KOV postback
+  await waitForPostback(2000);
 
-    const makeDef = profile.fields.vehicleMakeType;
-    const el = document.querySelector(makeDef.selector);
+  // Step 2: Set Choose by Make/NCIC to "Make" and trigger postback
+  if (data.vehicleMakeType && profile.fields.vehicleMakeType) {
+    const el = document.querySelector(profile.fields.vehicleMakeType.selector);
     if (el) {
       el.value = String(data.vehicleMakeType);
-      const script = document.createElement('script');
-      script.textContent = "__doPostBack('ctl00$ContentPlaceHolder1$ddlNCICMake','')";
-      document.head.appendChild(script);
-      script.remove();
+      triggerASPPostback(el);
       console.log('[Fill It Baby] MakeType set to %s, triggered postback', data.vehicleMakeType);
     }
   }
 
-  // Step 3: After make list loads, select the actual make
-  if (data.vehicleMakeNCIC && profile.fields.vehicleMakeNCIC) {
-    // Wait for Make postback to load the options
-    await new Promise(r => setTimeout(r, 2500));
+  // Wait for Make list to load
+  await waitForPostback(2500);
 
-    const ncicDef = profile.fields.vehicleMakeNCIC;
-    const el = document.querySelector(ncicDef.selector);
+  // Step 3: Select the actual make
+  if (data.vehicleMakeNCIC && profile.fields.vehicleMakeNCIC) {
+    const el = document.querySelector(profile.fields.vehicleMakeNCIC.selector);
     if (el) {
-      fillSelect(ncicDef, data.vehicleMakeNCIC);
+      console.log('[Fill It Baby] Make/NCIC dropdown has %d options', el.options.length);
+      fillSelect(profile.fields.vehicleMakeNCIC, data.vehicleMakeNCIC);
       console.log('[Fill It Baby] Make/NCIC set to %s', data.vehicleMakeNCIC);
     }
   }
 
-  // Step 4: Set Dealer No and Proof of Ownership (after postbacks settle)
-  await new Promise(r => setTimeout(r, 500));
+  // Step 4: Set Dealer No and Proof of Ownership
+  await waitForPostback(500);
 
   if (data.dealerNo && profile.fields.dealerNo) {
     fillSelect(profile.fields.dealerNo, data.dealerNo);
@@ -129,6 +120,57 @@ async function fillTRPA(data, profile) {
   if (data.proofOfOwnership && profile.fields.proofOfOwnership) {
     fillSelect(profile.fields.proofOfOwnership, data.proofOfOwnership);
   }
+
+  // Re-fill text fields that postbacks may have cleared
+  for (const fieldName of immediateFields) {
+    const value = data[fieldName];
+    if (value === undefined || value === null || value === '') continue;
+    const fieldDef = profile.fields[fieldName];
+    if (!fieldDef) continue;
+    const def = typeof fieldDef === 'string' ? { selector: fieldDef } : fieldDef;
+    const el = document.querySelector(def.selector);
+    if (el && !el.value) {
+      const type = def.type || '';
+      if (type === 'select') {
+        fillSelect(def, value);
+      } else {
+        fillTextField(def, value);
+      }
+    }
+  }
+}
+
+// Trigger ASP.NET postback by calling the element's onchange handler directly
+function triggerASPPostback(el) {
+  // Method 1: Call the inline onchange if it exists
+  if (el.onchange) {
+    el.onchange();
+    return;
+  }
+  // Method 2: Fire change event
+  el.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+// Wait for ASP.NET UpdatePanel to complete
+function waitForPostback(ms) {
+  return new Promise(resolve => {
+    // Try to hook into ASP.NET's PageRequestManager if available
+    try {
+      if (typeof Sys !== 'undefined' && Sys.WebForms && Sys.WebForms.PageRequestManager) {
+        const prm = Sys.WebForms.PageRequestManager.getInstance();
+        const handler = function() {
+          prm.remove_endRequest(handler);
+          resolve();
+        };
+        prm.add_endRequest(handler);
+        // Fallback timeout in case endRequest never fires
+        setTimeout(resolve, ms);
+        return;
+      }
+    } catch(e) {}
+    // Fallback: just wait
+    setTimeout(resolve, ms);
+  });
 }
 
 // --- Standard profile fill (NOL and others) ---
