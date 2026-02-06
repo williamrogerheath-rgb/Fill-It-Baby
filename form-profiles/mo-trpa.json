@@ -1,0 +1,94 @@
+{
+  "name": "Missouri Temporary Registration Permit",
+  "urlPattern": "sa.dor.mo.gov/mv/trpa_dealers/TRPA/IssuePermit",
+  "fields": {
+    "ownerType": {
+      "selector": "#ContentPlaceHolder1_TypeDropDown0",
+      "type": "select"
+    },
+    "ownerDLN": {
+      "selector": "#ContentPlaceHolder1_DLNTextBoxestextBox0",
+      "type": "text",
+      "maxlength": 25
+    },
+    "ownerLastName": {
+      "selector": "#ContentPlaceHolder1_LastNametextBox0",
+      "type": "text",
+      "maxlength": 50
+    },
+    "ownerFirstName": {
+      "selector": "#ContentPlaceHolder1_FirstNametextBox0",
+      "type": "text",
+      "maxlength": 50
+    },
+    "ownerMiddleName": {
+      "selector": "#ContentPlaceHolder1_MiddleNameTextBoxes0",
+      "type": "text",
+      "maxlength": 50
+    },
+    "ownerSuffix": {
+      "selector": "#ContentPlaceHolder1_SuffixNameTextBoxes0",
+      "type": "text",
+      "maxlength": 50
+    },
+    "ownerAddress": {
+      "selector": "#ContentPlaceHolder1_txtAddress",
+      "type": "text",
+      "maxlength": 50
+    },
+    "ownerCity": {
+      "selector": "#ContentPlaceHolder1_txtCity",
+      "type": "text",
+      "maxlength": 35
+    },
+    "ownerState": {
+      "selector": "#ContentPlaceHolder1_txtState",
+      "type": "text",
+      "maxlength": 2
+    },
+    "ownerZip": {
+      "selector": "#ContentPlaceHolder1_txtZip",
+      "type": "text",
+      "maxlength": 10
+    },
+    "ownerPhone": {
+      "selector": "#ContentPlaceHolder1_txtPhone",
+      "type": "text",
+      "maxlength": 14
+    },
+    "ownerDOB": {
+      "selector": "#ContentPlaceHolder1_txtDOB",
+      "type": "text"
+    },
+    "vehicleKOV": {
+      "selector": "#ContentPlaceHolder1_ddlKOV",
+      "type": "select"
+    },
+    "vehicleYear": {
+      "selector": "#ContentPlaceHolder1_txtYear",
+      "type": "text",
+      "maxlength": 4
+    },
+    "vehicleVIN": {
+      "selector": "#ContentPlaceHolder1_txtVIN",
+      "type": "text",
+      "maxlength": 17
+    },
+    "vehiclePurchaseDate": {
+      "selector": "#ContentPlaceHolder1_txtPurchase",
+      "type": "text"
+    },
+    "vehicleNetPrice": {
+      "selector": "#ContentPlaceHolder1_txtNetPrice",
+      "type": "text"
+    },
+    "dealerNo": {
+      "selector": "#ContentPlaceHolder1_ddlDealer",
+      "type": "select"
+    },
+    "proofOfOwnership": {
+      "selector": "#ContentPlaceHolder1_ddlOwnership",
+      "type": "select"
+    }
+  }
+}
