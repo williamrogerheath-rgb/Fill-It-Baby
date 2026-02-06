@@ -43,7 +43,16 @@ async function loadMatchingProfile() {
 }
 
 function fillWithProfile(data, profile) {
+  // If lienholderSelect is "info", activate manual entry mode first
+  // so the page enables the lienholder input fields before we fill them.
+  if (data.lienholderSelect === 'info' && profile.fields.lienholderSelect) {
+    activateLienholderManualEntry(profile.fields.lienholderSelect);
+  }
+
   for (const [fieldName, fieldDef] of Object.entries(profile.fields)) {
+    // Already handled above — skip so we don't re-fire
+    if (fieldName === 'lienholderSelect' && data.lienholderSelect === 'info') continue;
+
     const value = data[fieldName];
     if (value === undefined || value === null || value === '') {
       console.log('[Fill It Baby] Field "%s" — no data, skipping', fieldName);
@@ -74,6 +83,31 @@ function fillWithProfile(data, profile) {
       fillTextField(def, value);
     }
   }
+}
+
+function activateLienholderManualEntry(fieldDef) {
+  const def = typeof fieldDef === 'string' ? { selector: fieldDef } : fieldDef;
+  const radios = document.querySelectorAll(def.selector);
+
+  for (const radio of radios) {
+    if (radio.value === 'info') {
+      radio.checked = true;
+      // Dispatch a real click event to trigger the page's onclick handler
+      radio.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      fireEvents(radio);
+
+      // Call the page's native handler directly if it exists
+      // Content scripts can't access page JS, so inject a small script
+      const script = document.createElement('script');
+      script.textContent = 'if (typeof disableLienHolderFDIC === "function") disableLienHolderFDIC();';
+      document.documentElement.appendChild(script);
+      script.remove();
+
+      console.log('[Fill It Baby] Activated lienholderSelect "info" mode');
+      return;
+    }
+  }
+  console.log('[Fill It Baby] lienholderSelect "info" radio not found');
 }
 
 // --- Field type handlers ---
