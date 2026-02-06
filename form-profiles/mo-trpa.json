@@ -64,6 +64,14 @@
       "selector": "#ContentPlaceHolder1_ddlKOV",
       "type": "select"
     },
+    "vehicleMakeType": {
+      "selector": "#ContentPlaceHolder1_ddlNCICMake",
+      "type": "select"
+    },
+    "vehicleMakeNCIC": {
+      "selector": "#ContentPlaceHolder1_ddlNCIC",
+      "type": "select"
+    },
     "vehicleYear": {
       "selector": "#ContentPlaceHolder1_txtYear",
       "type": "text",

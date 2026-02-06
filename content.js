@@ -14,7 +14,13 @@ async function fillForm(data) {
 
   if (profile) {
     console.log('[Fill It Baby] Matched profile:', profile.name);
-    fillWithProfile(data, profile);
+
+    // TRPA needs special handling for ASP.NET postback dropdowns
+    if (profile.urlPattern && profile.urlPattern.includes('trpa_dealers')) {
+      await fillTRPA(data, profile);
+    } else {
+      fillWithProfile(data, profile);
+    }
   } else {
     console.log('[Fill It Baby] No profile matched, using heuristics');
     fillWithHeuristics(data);
@@ -25,7 +31,7 @@ async function fillForm(data) {
 
 async function loadMatchingProfile() {
   const url = window.location.href;
-  const profiles = ['mo-nol'];
+  const profiles = ['mo-nol', 'mo-trpa'];
 
   for (const name of profiles) {
     try {
@@ -41,6 +47,91 @@ async function loadMatchingProfile() {
   }
   return null;
 }
+
+// --- TRPA-specific fill (handles ASP.NET postbacks) ---
+
+async function fillTRPA(data, profile) {
+  console.log('[Fill It Baby] Using TRPA fill mode');
+
+  // Fields that DON'T trigger postbacks — fill these immediately
+  const immediateFields = [
+    'ownerType', 'ownerDLN', 'ownerLastName', 'ownerFirstName',
+    'ownerMiddleName', 'ownerSuffix', 'ownerAddress', 'ownerCity',
+    'ownerState', 'ownerZip', 'ownerPhone', 'ownerDOB',
+    'vehicleYear', 'vehicleVIN', 'vehiclePurchaseDate', 'vehicleNetPrice'
+  ];
+
+  for (const fieldName of immediateFields) {
+    const value = data[fieldName];
+    if (value === undefined || value === null || value === '') continue;
+    const fieldDef = profile.fields[fieldName];
+    if (!fieldDef) continue;
+    const def = typeof fieldDef === 'string' ? { selector: fieldDef } : fieldDef;
+    const type = def.type || '';
+    if (type === 'select') {
+      fillSelect(def, value);
+    } else {
+      fillTextField(def, value);
+    }
+  }
+
+  // Step 1: Set Kind of Vehicle (triggers postback)
+  if (data.vehicleKOV && profile.fields.vehicleKOV) {
+    const kovDef = profile.fields.vehicleKOV;
+    const el = document.querySelector(kovDef.selector);
+    if (el) {
+      el.value = String(data.vehicleKOV);
+      // Trigger ASP.NET postback via __doPostBack
+      const script = document.createElement('script');
+      script.textContent = "__doPostBack('ctl00$ContentPlaceHolder1$ddlKOV','')";
+      document.head.appendChild(script);
+      script.remove();
+      console.log('[Fill It Baby] KOV set to %s, triggered postback', data.vehicleKOV);
+    }
+  }
+
+  // Step 2: Set Choose by Make/NCIC to "Make" (triggers postback to load makes)
+  if (data.vehicleMakeType && profile.fields.vehicleMakeType) {
+    // Wait for KOV postback to complete
+    await new Promise(r => setTimeout(r, 2000));
+
+    const makeDef = profile.fields.vehicleMakeType;
+    const el = document.querySelector(makeDef.selector);
+    if (el) {
+      el.value = String(data.vehicleMakeType);
+      const script = document.createElement('script');
+      script.textContent = "__doPostBack('ctl00$ContentPlaceHolder1$ddlNCICMake','')";
+      document.head.appendChild(script);
+      script.remove();
+      console.log('[Fill It Baby] MakeType set to %s, triggered postback', data.vehicleMakeType);
+    }
+  }
+
+  // Step 3: After make list loads, select the actual make
+  if (data.vehicleMakeNCIC && profile.fields.vehicleMakeNCIC) {
+    // Wait for Make postback to load the options
+    await new Promise(r => setTimeout(r, 2500));
+
+    const ncicDef = profile.fields.vehicleMakeNCIC;
+    const el = document.querySelector(ncicDef.selector);
+    if (el) {
+      fillSelect(ncicDef, data.vehicleMakeNCIC);
+      console.log('[Fill It Baby] Make/NCIC set to %s', data.vehicleMakeNCIC);
+    }
+  }
+
+  // Step 4: Set Dealer No and Proof of Ownership (after postbacks settle)
+  await new Promise(r => setTimeout(r, 500));
+
+  if (data.dealerNo && profile.fields.dealerNo) {
+    fillSelect(profile.fields.dealerNo, data.dealerNo);
+  }
+  if (data.proofOfOwnership && profile.fields.proofOfOwnership) {
+    fillSelect(profile.fields.proofOfOwnership, data.proofOfOwnership);
+  }
+}
+
+// --- Standard profile fill (NOL and others) ---
 
 function fillWithProfile(data, profile) {
   // If lienholderSelect is "info", activate manual entry mode first
