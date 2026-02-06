@@ -5,10 +5,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Load extracted data from chrome.storage.local
   const { pdfFillData } = await chrome.storage.local.get('pdfFillData');
+  const extractedData = pdfFillData ? pdfFillData.extractedData : null;
 
-  if (pdfFillData && pdfFillData.extractedData) {
-    prefillForm(pdfFillData.extractedData);
+  if (extractedData) {
+    prefillForm(extractedData);
   }
+
+  // Check if dealer fields are empty — offer fallback from saved defaults
+  await loadDealerDefaults(extractedData);
 
   generateBtn.addEventListener('click', () => generatePdf());
 });
@@ -90,6 +94,60 @@ function prefillForm(data) {
     const sigDate2 = document.getElementById('consumerSignatureDate2');
     if (sigDate2 && !sigDate2.value) sigDate2.value = data.cancelDate;
   }
+}
+
+const DEALER_FIELD_IDS = ['dealerName', 'dealerPhone', 'dealerAddress', 'dealerCity', 'dealerState', 'dealerZip'];
+
+function dealerFieldsEmpty() {
+  return DEALER_FIELD_IDS.every(id => !document.getElementById(id).value.trim());
+}
+
+async function loadDealerDefaults(extractedData) {
+  // Only offer fallback if Claude didn't extract dealer info
+  if (!dealerFieldsEmpty()) return;
+
+  const { dealerDefaults } = await chrome.storage.sync.get('dealerDefaults');
+  if (!dealerDefaults || dealerDefaults.length === 0) return;
+
+  if (dealerDefaults.length === 1) {
+    // Single dealer — auto-fill immediately
+    applyDealerProfile(dealerDefaults[0]);
+    return;
+  }
+
+  // Multiple dealers — show picker dropdown
+  const picker = document.getElementById('dealerDefaultPicker');
+  const select = document.getElementById('dealerDefaultSelect');
+
+  // Clear existing options beyond the placeholder
+  select.innerHTML = '<option value="">-- Select a dealer --</option>';
+  dealerDefaults.forEach((dealer, idx) => {
+    const opt = document.createElement('option');
+    opt.value = idx;
+    opt.textContent = dealer.dealerName;
+    select.appendChild(opt);
+  });
+
+  picker.style.display = 'block';
+
+  select.addEventListener('change', () => {
+    const idx = select.value;
+    if (idx === '') {
+      // Clear dealer fields if user deselects
+      DEALER_FIELD_IDS.forEach(id => { document.getElementById(id).value = ''; });
+      return;
+    }
+    applyDealerProfile(dealerDefaults[Number(idx)]);
+  });
+}
+
+function applyDealerProfile(dealer) {
+  document.getElementById('dealerName').value = dealer.dealerName || '';
+  document.getElementById('dealerPhone').value = dealer.dealerPhone || '';
+  document.getElementById('dealerAddress').value = dealer.dealerAddress || '';
+  document.getElementById('dealerCity').value = dealer.dealerCity || '';
+  document.getElementById('dealerState').value = dealer.dealerState || '';
+  document.getElementById('dealerZip').value = dealer.dealerZip || '';
 }
 
 async function generatePdf() {
