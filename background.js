@@ -9,14 +9,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (action === 'extractPdf') {
     const pdfBase64 = message.pdfBase64 || message.pdf;
     const mode = message.mode || 'webForm';
-    handleExtract(pdfBase64, mode, sender)
+    const template = message.template || '';
+    handleExtract(pdfBase64, mode, template, sender)
       .then((result) => sendResponse(result))
       .catch((err) => sendResponse({ error: err.message }));
     return true;
   }
 });
 
-async function handleExtract(pdfBase64, mode, sender) {
+async function handleExtract(pdfBase64, mode, template, sender) {
   const { apiKey } = await chrome.storage.sync.get('apiKey');
   if (!apiKey) {
     return { error: 'API key not set. Open extension options to add your Claude API key.' };
@@ -31,7 +32,18 @@ async function handleExtract(pdfBase64, mode, sender) {
     tabUrl = tab.url || '';
   }
 
-  const extractedData = await callClaudeApi(apiKey, pdfBase64, mode, tabUrl);
+  // For generic templates, load the field names from storage
+  let templateFields = null;
+  if (mode === 'fillPdf' && template && template !== 'APPI_CANCELLATION') {
+    const result = await chrome.storage.local.get('pdfTemplates');
+    const templates = result.pdfTemplates || [];
+    const tmpl = templates.find(t => t.id === template);
+    if (tmpl) {
+      templateFields = tmpl.fields;
+    }
+  }
+
+  const extractedData = await callClaudeApi(apiKey, pdfBase64, mode, tabUrl, template, templateFields);
 
   if (mode === 'fillPdf') {
     // Return data directly to popup.js for the review form
@@ -52,10 +64,12 @@ async function getActiveTabId() {
   return tab.id;
 }
 
-async function callClaudeApi(apiKey, pdfBase64, mode, tabUrl) {
+async function callClaudeApi(apiKey, pdfBase64, mode, tabUrl, template, templateFields) {
   let promptText;
-  if (mode === 'fillPdf') {
+  if (mode === 'fillPdf' && template === 'APPI_CANCELLATION') {
     promptText = getFillPdfPrompt();
+  } else if (mode === 'fillPdf' && templateFields) {
+    promptText = getGenericPdfPrompt(templateFields);
   } else if (tabUrl.includes('sa.dor.mo.gov/mv/trpa_dealers')) {
     promptText = getTRPAPrompt();
   } else {
@@ -119,7 +133,7 @@ function getTRPAPrompt() {
   return 'Extract all form-relevant data from this PDF document for a Missouri Temporary Registration Permit Application (TRPA). Return ONLY valid JSON with the exact camelCase field names below. Do not include any explanation — just the JSON object.\n\nRequired fields and formatting rules:\n- ownerType: "INDIVIDUAL" or "BUSINESS". Default to "INDIVIDUAL".\n- ownerLastName: Last name only\n- ownerFirstName: First name only\n- ownerMiddleName: Middle name if present, otherwise omit\n- ownerSuffix: Suffix (Jr, Sr, III, etc.) if present, otherwise omit\n- ownerDLN: Driver license number if present, otherwise omit\n- ownerAddress: Street address only (no city, state, or zip)\n- ownerCity: City name only\n- ownerState: Two-letter state abbreviation\n- ownerZip: Zip code (5 or 9 digit)\n- ownerPhone: Phone number formatted as (###) ###-####\n- ownerDOB: Date of birth in MM/DD/YYYY format if present\n- vehicleKOV: Map vehicle type to these exact values: "6" for Passenger/Car/Sedan/Coupe/Hatchback, "9" for Truck/Pickup, "4" for Motorcycle, "2" for Bus/Heavy Truck, "8" for Trailer, "7" for RV/Motorhome, "11" for Autocycle, "5" for Motortricycle. Default to "6" for standard consumer vehicles.\n- vehicleMakeType: ALWAYS set to "2" (this selects "Make" mode in the dropdown).\n- vehicleMakeNCIC: The vehicle make name exactly as it appears (e.g. "MAZDA", "FORD", "CHEVROLET", "TOYOTA", "HONDA"). Uppercase.\n- vehicleYear: 4-digit year\n- vehicleVIN: Vehicle identification number, uppercase, no spaces, max 17 characters\n- vehiclePurchaseDate: Purchase date in MM/DD/YYYY format\n- vehicleNetPrice: Sale price or net price as a number without $ sign or commas. Omit if not found.\n- dealerNo: ALWAYS set to "D3871".\n- proofOfOwnership: ALWAYS set to "Missouri Title".';
 }
 
-// === FILL PDF PROMPT (for APPI GAP Cancellation) ===
+// === FILL PDF PROMPT (for APPI GAP Cancellation) — DO NOT MODIFY ===
 function getFillPdfPrompt() {
   return `You are extracting data from a document to fill an APPI GAP Cancellation form. The source document could be any of these types: a lender early payoff notice, a credit union GAP refund request letter, a refund of ancillary products form, an original APPI GAP contract, a bill of sale, or any other dealership/finance document.
 
@@ -157,4 +171,27 @@ Rules:
 - VIN: Always uppercase, remove spaces.
 - All dates: MM/DD/YYYY format.
 - If a field is not found, return empty string "".`;
+}
+
+// === GENERIC PDF TEMPLATE PROMPT (NEW) ===
+function getGenericPdfPrompt(templateFields) {
+  const fieldNames = templateFields
+    .filter(f => f.type.includes('Text'))
+    .map(f => f.name);
+
+  return `You are extracting data from a document to fill a PDF form. The target form has the following fields:
+
+${fieldNames.map(n => '- "' + n + '"').join('\n')}
+
+Extract the relevant data from the source document and return ONLY valid JSON — no markdown fences, no explanation, no extra text.
+
+The JSON keys must be the EXACT field names listed above (including spaces, underscores, and capitalization). For each field, extract the most appropriate value from the document.
+
+Rules:
+- VIN/Vehicle Identification Number: Always uppercase, no spaces
+- Dates: MM/DD/YYYY format
+- State: Two-letter abbreviation
+- Names: As they appear in the document
+- If a field cannot be determined from the document, use empty string ""
+- Return ALL fields listed above, even if empty`;
 }

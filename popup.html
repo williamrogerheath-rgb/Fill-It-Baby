@@ -19,6 +19,17 @@
       </label>
     </div>
 
+    <!-- Template selector (shown only in fillPdf mode) -->
+    <div id="template-bar" hidden>
+      <div class="template-row">
+        <select id="template-select">
+          <option value="">-- Pick template --</option>
+          <option value="APPI_CANCELLATION">APPI Cancellation</option>
+        </select>
+        <button id="manage-templates-btn" class="btn-icon" title="Manage Templates">⚙</button>
+      </div>
+    </div>
+
     <!-- Upload Section -->
     <div id="upload-section">
       <div id="drop-zone" class="drop-zone">
@@ -36,7 +47,35 @@
       <button id="submit-btn" class="btn btn-primary" disabled>Extract &amp; Fill</button>
     </div>
 
-    <!-- PDF Review Form (hidden until extraction in fillPdf mode) -->
+    <!-- Template Manager (hidden until gear icon clicked) -->
+    <div id="template-manager" hidden>
+      <div class="review-header">
+        <button id="tm-back-btn" class="back-btn">&larr; Back</button>
+        <span class="review-title">Manage Templates</span>
+      </div>
+
+      <div class="review-section">
+        <div class="section-label">Add New Template</div>
+        <p class="hint">Upload a blank fillable PDF to scan its fields.</p>
+        <input type="file" id="tm-file-input" accept=".pdf" hidden>
+        <button id="tm-upload-btn" class="btn" style="width:100%;margin-bottom:8px;">Upload Blank PDF</button>
+        <div id="tm-scan-result" hidden>
+          <div class="field">
+            <label>Template Name</label>
+            <input type="text" id="tm-name" placeholder="e.g. Nebraska Title App">
+          </div>
+          <div id="tm-field-count" class="hint"></div>
+          <button id="tm-save-btn" class="btn btn-primary" style="margin-top:8px;">Save Template</button>
+        </div>
+      </div>
+
+      <div class="review-section">
+        <div class="section-label">Saved Templates</div>
+        <div id="tm-list"></div>
+      </div>
+    </div>
+
+    <!-- APPI Review Form (hidden until extraction in fillPdf mode with APPI template) -->
     <div id="pdf-review" hidden>
       <div class="review-header">
         <button id="back-btn" class="back-btn">&larr; Back</button>
@@ -119,7 +158,17 @@
         </div>
       </div>
 
-      <button id="generate-btn" class="btn btn-primary generate-btn">⬇ Generate Filled PDF</button>
+      <button id="generate-btn" class="btn btn-primary generate-btn">Generate Filled PDF</button>
+    </div>
+
+    <!-- Generic Review Form (for scanned templates) -->
+    <div id="generic-review" hidden>
+      <div class="review-header">
+        <button id="gen-back-btn" class="back-btn">&larr; Back</button>
+        <span class="review-title" id="gen-review-title">Review &amp; Generate</span>
+      </div>
+      <div id="gen-fields"></div>
+      <button id="gen-generate-btn" class="btn btn-primary generate-btn">Generate Filled PDF</button>
     </div>
 
     <div id="status" class="status" hidden></div>

@@ -226,3 +226,93 @@ h1 {
   font-size: 12px;
   margin-bottom: 8px;
 }
+
+/* ===== TEMPLATE BAR ===== */
+.template-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  align-items: center;
+}
+
+.template-row select {
+  flex: 1;
+  padding: 6px 8px;
+  background: #232733;
+  border: 1px solid #2e3345;
+  border-radius: 5px;
+  color: #e8eaf0;
+  font-size: 12px;
+  outline: none;
+}
+
+.template-row select:focus { border-color: #5b8aff; }
+
+.btn-icon {
+  background: none;
+  border: 1px solid #2e3345;
+  color: #8b90a5;
+  padding: 5px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-icon:hover { border-color: #5b8aff; color: #5b8aff; }
+
+/* ===== TEMPLATE MANAGER ===== */
+.hint {
+  font-size: 11px;
+  color: #8b90a5;
+  margin-bottom: 8px;
+}
+
+.tm-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  background: #232733;
+  border-radius: 5px;
+  margin-bottom: 4px;
+  font-size: 12px;
+}
+
+.tm-item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tm-delete:hover { color: #ff5c5c; }
+
+/* ===== GENERIC REVIEW ===== */
+#gen-fields .field {
+  margin-bottom: 6px;
+}
+
+#gen-fields .field label {
+  display: block;
+  font-size: 10px;
+  color: #8b90a5;
+  margin-bottom: 2px;
+}
+
+#gen-fields .field input[type="text"] {
+  width: 100%;
+  padding: 6px 8px;
+  background: #232733;
+  border: 1px solid #2e3345;
+  border-radius: 5px;
+  color: #e8eaf0;
+  font-size: 12px;
+  outline: none;
+}
+
+#gen-fields .field input[type="text"]:focus {
+  border-color: #5b8aff;
+}
+
+#gen-fields input[type="checkbox"] {
+  accent-color: #5b8aff;
+}
