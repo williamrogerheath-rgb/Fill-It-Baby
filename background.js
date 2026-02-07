@@ -173,25 +173,44 @@ Rules:
 - If a field is not found, return empty string "".`;
 }
 
-// === GENERIC PDF TEMPLATE PROMPT (NEW) ===
+// === GENERIC PDF TEMPLATE PROMPT ===
 function getGenericPdfPrompt(templateFields) {
-  const fieldNames = templateFields
-    .filter(f => f.type.includes('Text'))
+  const textFields = templateFields
+    .filter(f => f.type === 'text')
     .map(f => f.name);
 
-  return `You are extracting data from a document to fill a PDF form. The target form has the following fields:
+  const checkFields = templateFields
+    .filter(f => f.type === 'checkbox' || f.type === 'radio')
+    .map(f => f.name);
 
-${fieldNames.map(n => '- "' + n + '"').join('\n')}
+  let prompt = `You are extracting data from a source document to fill a target PDF form.
 
-Extract the relevant data from the source document and return ONLY valid JSON — no markdown fences, no explanation, no extra text.
+The target form has these TEXT fields (return the EXACT field name as the JSON key):
+${textFields.map(n => '- "' + n + '"').join('\n')}`;
 
-The JSON keys must be the EXACT field names listed above (including spaces, underscores, and capitalization). For each field, extract the most appropriate value from the document.
+  if (checkFields.length > 0) {
+    prompt += `
 
-Rules:
-- VIN/Vehicle Identification Number: Always uppercase, no spaces
+The form also has these CHECKBOX fields (set to true or false):
+${checkFields.map(n => '- "' + n + '"').join('\n')}`;
+  }
+
+  prompt += `
+
+Return ONLY valid JSON — no markdown fences, no explanation, no extra text.
+
+CRITICAL RULES:
+- The JSON keys MUST be the EXACT field names listed above, character for character (including spaces, underscores, capitalization, and numbers like _2, _3)
+- Fields with "2nd" or "_2" are for a SECOND owner/co-buyer — use different data, NOT the same as the first owner. If there is no second owner, use empty string.
+- Fields with "3rd" or "_3" are for a THIRD owner — use different data. If there is no third owner, use empty string.
+- "Lien Holder Name 1" through "Lien Holder Name 5" may be segments of ONE long name split across fields, OR separate lienholders. Split the lienholder name across these fields if it is long, otherwise put it in field 1 and leave the rest empty.
+- Fields like "Street", "City", "State", "ZIP" near lien information are the LIENHOLDER address, not the owner address.
+- Vehicle Identification Number / VIN: Always uppercase, no spaces, full 17 characters
 - Dates: MM/DD/YYYY format
 - State: Two-letter abbreviation
-- Names: As they appear in the document
-- If a field cannot be determined from the document, use empty string ""
+- Do NOT put the same data in multiple fields — each field gets its own unique appropriate value
+- If a field has no matching data in the source document, use empty string ""
 - Return ALL fields listed above, even if empty`;
+
+  return prompt;
 }

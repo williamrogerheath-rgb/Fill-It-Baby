@@ -638,31 +638,12 @@ function showGenericReview(data, template) {
   }
 }
 
+// Direct key lookup — Claude returns exact field names as keys, no fuzzy matching needed
 function matchField(fieldName, data) {
-  const fn = fieldName.toLowerCase().replace(/[^a-z0-9]/g, '');
-
-  for (const [key, val] of Object.entries(data)) {
-    if (key.toLowerCase().replace(/[^a-z0-9]/g, '') === fn) return String(val);
+  // Exact match (Claude should return exact field names)
+  if (data.hasOwnProperty(fieldName)) {
+    return String(data[fieldName]);
   }
-
-  for (const [key, val] of Object.entries(data)) {
-    const k = key.toLowerCase().replace(/[^a-z0-9]/g, '');
-    if (fn.includes(k) || k.includes(fn)) return String(val);
-  }
-
-  const fieldWords = fieldName.toLowerCase().split(/[^a-z]+/).filter(w => w.length > 2);
-  let bestMatch = null;
-  let bestScore = 0;
-  for (const [key, val] of Object.entries(data)) {
-    const keyWords = key.replace(/([A-Z])/g, ' $1').toLowerCase().split(/[^a-z]+/).filter(w => w.length > 2);
-    const overlap = fieldWords.filter(w => keyWords.includes(w)).length;
-    if (overlap > bestScore) {
-      bestScore = overlap;
-      bestMatch = String(val);
-    }
-  }
-  if (bestScore > 0) return bestMatch;
-
   return null;
 }
 
