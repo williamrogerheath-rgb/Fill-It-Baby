@@ -217,6 +217,7 @@ Return ONLY valid JSON — no markdown fences, no explanation, no extra text.
 RULES:
 - JSON keys must be the EXACT field names listed above, character for character
 - Use the visual layout of the TARGET FORM to understand what each field is for — a field named "Name" in the lien section means lienholder name, not owner name
+- Generic field names like "Street", "City", "State", "ZIP" belong to the SECTION they appear in on the form. If they appear under "Lien Information", they are the LIENHOLDER's street, city, state, zip — fill them with the lienholder/bank address from the source document, NOT the owner's address
 - Do NOT put the same data in multiple fields — each field gets ONE unique appropriate value
 - Fields for "2nd" or "3rd" owners are for co-buyers — use empty string if no co-buyer exists
 - Transfer On Death (TOD) beneficiary fields are NOT owners — leave empty unless source doc explicitly names beneficiaries
