@@ -32,18 +32,20 @@ async function handleExtract(pdfBase64, mode, template, sender) {
     tabUrl = tab.url || '';
   }
 
-  // For generic templates, load the field names from storage
+  // For generic templates, load the template data from storage
   let templateFields = null;
+  let templatePdfBase64 = null;
   if (mode === 'fillPdf' && template && template !== 'APPI_CANCELLATION') {
     const result = await chrome.storage.local.get('pdfTemplates');
     const templates = result.pdfTemplates || [];
     const tmpl = templates.find(t => t.id === template);
     if (tmpl) {
       templateFields = tmpl.fields;
+      templatePdfBase64 = tmpl.pdfBase64;
     }
   }
 
-  const extractedData = await callClaudeApi(apiKey, pdfBase64, mode, tabUrl, template, templateFields);
+  const extractedData = await callClaudeApi(apiKey, pdfBase64, mode, tabUrl, template, templateFields, templatePdfBase64);
 
   if (mode === 'fillPdf') {
     // Return data directly to popup.js for the review form
@@ -64,16 +66,36 @@ async function getActiveTabId() {
   return tab.id;
 }
 
-async function callClaudeApi(apiKey, pdfBase64, mode, tabUrl, template, templateFields) {
+async function callClaudeApi(apiKey, pdfBase64, mode, tabUrl, template, templateFields, templatePdfBase64) {
   let promptText;
+  let contentParts = [];
+
   if (mode === 'fillPdf' && template === 'APPI_CANCELLATION') {
     promptText = getFillPdfPrompt();
-  } else if (mode === 'fillPdf' && templateFields) {
+    contentParts = [
+      { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: pdfBase64 } },
+      { type: 'text', text: promptText }
+    ];
+  } else if (mode === 'fillPdf' && templateFields && templatePdfBase64) {
+    // GENERIC TEMPLATE: send BOTH the template PDF and source PDF
     promptText = getGenericPdfPrompt(templateFields);
-  } else if (tabUrl.includes('sa.dor.mo.gov/mv/trpa_dealers')) {
-    promptText = getTRPAPrompt();
+    contentParts = [
+      { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: templatePdfBase64 } },
+      { type: 'text', text: 'Above is the TARGET FORM (blank template) that needs to be filled.' },
+      { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: pdfBase64 } },
+      { type: 'text', text: promptText }
+    ];
   } else {
-    promptText = getNOLPrompt();
+    // Web form mode
+    if (tabUrl.includes('sa.dor.mo.gov/mv/trpa_dealers')) {
+      promptText = getTRPAPrompt();
+    } else {
+      promptText = getNOLPrompt();
+    }
+    contentParts = [
+      { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: pdfBase64 } },
+      { type: 'text', text: promptText }
+    ];
   }
 
   const response = await fetch(CLAUDE_API_URL, {
@@ -90,20 +112,7 @@ async function callClaudeApi(apiKey, pdfBase64, mode, tabUrl, template, template
       messages: [
         {
           role: 'user',
-          content: [
-            {
-              type: 'document',
-              source: {
-                type: 'base64',
-                media_type: 'application/pdf',
-                data: pdfBase64
-              }
-            },
-            {
-              type: 'text',
-              text: promptText
-            }
-          ]
+          content: contentParts
         }
       ]
     })
@@ -183,15 +192,21 @@ function getGenericPdfPrompt(templateFields) {
     .filter(f => f.type === 'checkbox' || f.type === 'radio')
     .map(f => f.name);
 
-  let prompt = `You are extracting data from a source document to fill a target PDF form.
+  let prompt = `Above is the SOURCE DOCUMENT containing the data to extract.
 
-The target form has these TEXT fields (return the EXACT field name as the JSON key):
+You have seen TWO documents:
+1. The TARGET FORM (blank template) — this is the form to fill
+2. The SOURCE DOCUMENT — this contains the data
+
+Look at the TARGET FORM to understand the visual layout and what each field is for based on its position, section headers, and surrounding labels. Then extract the appropriate data from the SOURCE DOCUMENT.
+
+The target form has these fillable TEXT fields (use EXACT names as JSON keys):
 ${textFields.map(n => '- "' + n + '"').join('\n')}`;
 
   if (checkFields.length > 0) {
     prompt += `
 
-The form also has these CHECKBOX fields (set to true or false):
+CHECKBOX fields (set to true or false):
 ${checkFields.map(n => '- "' + n + '"').join('\n')}`;
   }
 
@@ -199,34 +214,17 @@ ${checkFields.map(n => '- "' + n + '"').join('\n')}`;
 
 Return ONLY valid JSON — no markdown fences, no explanation, no extra text.
 
-CRITICAL RULES — READ ALL BEFORE RESPONDING:
-
-FIELD MATCHING:
-- The JSON keys MUST be the EXACT field names listed above, character for character
-- Do NOT put the same data in multiple fields — each field gets ONE unique value
-
-OWNER FIELDS:
-- Fields with "2nd" or "_2" suffix are for a SECOND owner/co-buyer — different person than owner 1. If no co-buyer exists, use empty string.
-- Fields with "3rd" or "_3" suffix are for a THIRD owner. If no third owner, use empty string.
-- "Owner's Residential Address, City, State, Zip" = the BUYER's full residential address as one string (e.g. "123 Main St, Kansas City, MO 64132")
-- "Owner's Mailing Address, City, State, Zip" = same as residential unless different mailing address exists
-
-TRANSFER ON DEATH (TOD) FIELDS:
-- TOD beneficiary fields are for designated beneficiaries who inherit upon death — these are NOT the owners themselves
-- Unless the source document explicitly names TOD beneficiaries, leave these EMPTY
-
-LIEN / LIENHOLDER FIELDS:
-- "Lien Holder Name" fields = the bank or finance company name
-- "Lien Holder Name 1" through "Lien Holder Name 5" = segments of ONE name if it's long, otherwise use field 1 only
-- "Street", "City", "State", "ZIP" fields near the lien section = the LIENHOLDER's address (bank address), NOT the owner's address
-- "PLID" = lienholder ID number, leave empty if not in the source document
-
-DATA FORMATTING:
-- Vehicle Identification Number / VIN: Always uppercase, no spaces, full 17 characters
+RULES:
+- JSON keys must be the EXACT field names listed above, character for character
+- Use the visual layout of the TARGET FORM to understand what each field is for — a field named "Name" in the lien section means lienholder name, not owner name
+- Do NOT put the same data in multiple fields — each field gets ONE unique appropriate value
+- Fields for "2nd" or "3rd" owners are for co-buyers — use empty string if no co-buyer exists
+- Transfer On Death (TOD) beneficiary fields are NOT owners — leave empty unless source doc explicitly names beneficiaries
+- VIN: uppercase, no spaces, full 17 characters
 - Dates: MM/DD/YYYY format
-- State: Two-letter abbreviation
-- If a field has no matching data in the source document, use empty string ""
-- Return ALL fields listed above, even if empty`;
+- State: two-letter abbreviation
+- If no matching data exists in the source document, use empty string ""
+- Return ALL fields, even if empty`;
 
   return prompt;
 }
