@@ -199,16 +199,32 @@ ${checkFields.map(n => '- "' + n + '"').join('\n')}`;
 
 Return ONLY valid JSON — no markdown fences, no explanation, no extra text.
 
-CRITICAL RULES:
-- The JSON keys MUST be the EXACT field names listed above, character for character (including spaces, underscores, capitalization, and numbers like _2, _3)
-- Fields with "2nd" or "_2" are for a SECOND owner/co-buyer — use different data, NOT the same as the first owner. If there is no second owner, use empty string.
-- Fields with "3rd" or "_3" are for a THIRD owner — use different data. If there is no third owner, use empty string.
-- "Lien Holder Name 1" through "Lien Holder Name 5" may be segments of ONE long name split across fields, OR separate lienholders. Split the lienholder name across these fields if it is long, otherwise put it in field 1 and leave the rest empty.
-- Fields like "Street", "City", "State", "ZIP" near lien information are the LIENHOLDER address, not the owner address.
+CRITICAL RULES — READ ALL BEFORE RESPONDING:
+
+FIELD MATCHING:
+- The JSON keys MUST be the EXACT field names listed above, character for character
+- Do NOT put the same data in multiple fields — each field gets ONE unique value
+
+OWNER FIELDS:
+- Fields with "2nd" or "_2" suffix are for a SECOND owner/co-buyer — different person than owner 1. If no co-buyer exists, use empty string.
+- Fields with "3rd" or "_3" suffix are for a THIRD owner. If no third owner, use empty string.
+- "Owner's Residential Address, City, State, Zip" = the BUYER's full residential address as one string (e.g. "123 Main St, Kansas City, MO 64132")
+- "Owner's Mailing Address, City, State, Zip" = same as residential unless different mailing address exists
+
+TRANSFER ON DEATH (TOD) FIELDS:
+- TOD beneficiary fields are for designated beneficiaries who inherit upon death — these are NOT the owners themselves
+- Unless the source document explicitly names TOD beneficiaries, leave these EMPTY
+
+LIEN / LIENHOLDER FIELDS:
+- "Lien Holder Name" fields = the bank or finance company name
+- "Lien Holder Name 1" through "Lien Holder Name 5" = segments of ONE name if it's long, otherwise use field 1 only
+- "Street", "City", "State", "ZIP" fields near the lien section = the LIENHOLDER's address (bank address), NOT the owner's address
+- "PLID" = lienholder ID number, leave empty if not in the source document
+
+DATA FORMATTING:
 - Vehicle Identification Number / VIN: Always uppercase, no spaces, full 17 characters
 - Dates: MM/DD/YYYY format
 - State: Two-letter abbreviation
-- Do NOT put the same data in multiple fields — each field gets its own unique appropriate value
 - If a field has no matching data in the source document, use empty string ""
 - Return ALL fields listed above, even if empty`;
 
