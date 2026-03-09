@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fill It Pro — Privacy Policy</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: #1e293b;
+            background: #f8fafc;
+            line-height: 1.7;
+        }
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 48px 24px 80px;
+        }
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .updated {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 40px;
+        }
+        h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-top: 32px;
+            margin-bottom: 12px;
+            color: #0f172a;
+        }
+        p {
+            margin-bottom: 16px;
+            color: #334155;
+        }
+        ul {
+            margin: 0 0 16px 24px;
+            color: #334155;
+        }
+        li { margin-bottom: 6px; }
+        a { color: #3b82f6; }
+        .footer {
+            margin-top: 48px;
+            padding-top: 24px;
+            border-top: 1px solid #e2e8f0;
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Privacy Policy</h1>
+        <p class="updated">Last updated: March 9, 2026</p>
+
+        <p>Fill It Pro ("the Extension") is a Chrome browser extension that helps users extract data from PDF documents and auto-fill web forms. This policy explains what data the Extension accesses, how it is used, and how it is protected.</p>
+
+        <h2>Data We Process</h2>
+        <p>When you use Fill It Pro, the following data is processed:</p>
+        <ul>
+            <li><strong>PDF documents you upload</strong> — The content of PDFs you select or drag into the Extension is read locally in your browser and sent to the Anthropic API for data extraction.</li>
+            <li><strong>Your API key</strong> — Your Anthropic API key is stored locally in your browser using Chrome's built-in sync storage (<code>chrome.storage.sync</code>). It is only used to authenticate requests to the Anthropic API.</li>
+        </ul>
+
+        <h2>How Your Data Is Used</h2>
+        <p>PDF content is sent to Anthropic's Claude API solely to extract structured data (names, addresses, vehicle information, etc.) for the purpose of filling web forms. The Extension does not use your data for any other purpose.</p>
+
+        <h2>Third-Party Services</h2>
+        <p>The Extension sends PDF data to <a href="https://www.anthropic.com" target="_blank">Anthropic's</a> Claude API for processing. Anthropic's use of data sent through their API is governed by their own <a href="https://www.anthropic.com/privacy" target="_blank">privacy policy</a> and <a href="https://www.anthropic.com/api-terms" target="_blank">API terms of service</a>. Per Anthropic's API terms, data sent through the API is not used to train their models.</p>
+
+        <h2>Data Storage</h2>
+        <ul>
+            <li>Your API key is stored locally in your browser via <code>chrome.storage.sync</code>.</li>
+            <li>PDF content and extracted data are held in memory only during processing and are not persisted to disk or any external server controlled by us.</li>
+            <li>The Extension does not maintain any external database or server.</li>
+        </ul>
+
+        <h2>Data We Do NOT Collect</h2>
+        <ul>
+            <li>We do not collect analytics or usage data.</li>
+            <li>We do not track your browsing history.</li>
+            <li>We do not store your PDF documents or extracted form data.</li>
+            <li>We do not sell or share any data with third parties beyond the Anthropic API call described above.</li>
+        </ul>
+
+        <h2>Permissions</h2>
+        <p>The Extension requests the following Chrome permissions:</p>
+        <ul>
+            <li><strong>activeTab</strong> — To access the current page's form fields for auto-filling.</li>
+            <li><strong>storage</strong> — To store your API key locally.</li>
+            <li><strong>scripting</strong> — To inject the form-filling script into the active tab.</li>
+        </ul>
+
+        <h2>Your Control</h2>
+        <p>You are in full control of your data. You can remove your API key at any time from the Extension's options page, and uninstalling the Extension will remove all locally stored data. No data remains on any server we operate because we do not operate any servers.</p>
+
+        <h2>Changes to This Policy</h2>
+        <p>If this policy is updated, the changes will be posted on this page with a revised date. Continued use of the Extension after changes constitutes acceptance of the updated policy.</p>
+
+        <h2>Contact</h2>
+        <p>If you have questions about this privacy policy, you can reach us by opening an issue on our <a href="https://github.com/williamrogerheath-rgb/Fill-It-Baby" target="_blank">GitHub repository</a>.</p>
+
+        <div class="footer">
+            &copy; 2026 Fill It Pro. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>
