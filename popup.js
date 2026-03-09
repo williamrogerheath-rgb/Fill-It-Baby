@@ -148,7 +148,7 @@ submitBtn.addEventListener('click', async () => {
 
   const mode = getMode();
   const selectedTemplate = mode === 'fillPdf' ? templateSelect.value : '';
-  console.log('[Fill It Baby] Submit clicked. Mode:', mode, 'Template:', selectedTemplate);
+  console.log('[Fill It Pro] Submit clicked. Mode:', mode, 'Template:', selectedTemplate);
 
   submitBtn.disabled = true;
   showStatus('Extracting data from PDF...', 'info');
@@ -163,7 +163,7 @@ submitBtn.addEventListener('click', async () => {
       template: selectedTemplate
     });
 
-    console.log('[Fill It Baby] Response received:', response);
+    console.log('[Fill It Pro] Response received:', response);
 
     if (response.error) {
       showStatus('Error: ' + response.error, 'error');
@@ -172,23 +172,23 @@ submitBtn.addEventListener('click', async () => {
     }
 
     if (mode === 'fillPdf' && response.data) {
-      console.log('[Fill It Baby] fillPdf mode, template:', selectedTemplate);
+      console.log('[Fill It Pro] fillPdf mode, template:', selectedTemplate);
 
       if (selectedTemplate === 'APPI_CANCELLATION') {
         showReviewForm(response.data);
       } else if (selectedTemplate) {
-        console.log('[Fill It Baby] Routing to generic review...');
+        console.log('[Fill It Pro] Routing to generic review...');
         try {
           const templates = await getTemplates();
           const tmpl = templates.find(t => t.id === selectedTemplate);
-          console.log('[Fill It Baby] Found template:', tmpl ? tmpl.name : 'NOT FOUND');
+          console.log('[Fill It Pro] Found template:', tmpl ? tmpl.name : 'NOT FOUND');
           if (tmpl) {
             showGenericReview(response.data, tmpl);
           } else {
             showStatus('Template not found in storage.', 'error');
           }
         } catch (tmplErr) {
-          console.error('[Fill It Baby] Template load error:', tmplErr);
+          console.error('[Fill It Pro] Template load error:', tmplErr);
           showStatus('Error loading template: ' + tmplErr.message, 'error');
         }
       } else {
@@ -200,7 +200,7 @@ submitBtn.addEventListener('click', async () => {
       showStatus('No data returned from extraction.', 'error');
     }
   } catch (err) {
-    console.error('[Fill It Baby] Submit error:', err);
+    console.error('[Fill It Pro] Submit error:', err);
     showStatus('Error: ' + err.message, 'error');
   }
 
@@ -315,13 +315,13 @@ generateBtn.addEventListener('click', async () => {
       try {
         const val = getVal(id);
         if (val) form.getTextField(fieldName).setText(val);
-      } catch (e) { console.warn('[Fill It Baby] Field not found:', fieldName, e.message); }
+      } catch (e) { console.warn('[Fill It Pro] Field not found:', fieldName, e.message); }
     }
 
     function setCheck(fieldName, shouldCheck) {
       try {
         if (shouldCheck) form.getCheckBox(fieldName).check();
-      } catch (e) { console.warn('[Fill It Baby] Checkbox not found:', fieldName, e.message); }
+      } catch (e) { console.warn('[Fill It Pro] Checkbox not found:', fieldName, e.message); }
     }
 
     setText('Consumer Name', 'r-consumerName');
@@ -377,7 +377,7 @@ generateBtn.addEventListener('click', async () => {
 
     showStatus('PDF generated! ✓', 'success');
   } catch (err) {
-    console.error('[Fill It Baby] PDF generation error:', err);
+    console.error('[Fill It Pro] PDF generation error:', err);
     showStatus('Error: ' + err.message, 'error');
   }
 });
@@ -515,7 +515,7 @@ document.getElementById('tm-save-btn').addEventListener('click', async () => {
   const base64 = btoa(binary);
   const id = 'tmpl_' + Date.now();
 
-  console.log('[Fill It Baby] Saving template:', name, 'Fields:', scannedFields.length, 'Types:', JSON.stringify(scannedFields.slice(0,3)));
+  console.log('[Fill It Pro] Saving template:', name, 'Fields:', scannedFields.length, 'Types:', JSON.stringify(scannedFields.slice(0,3)));
 
   const templates = await getTemplates();
   templates.push({
@@ -572,7 +572,7 @@ async function refreshTemplateList() {
 // ============================================================
 
 function showGenericReview(data, template) {
-  console.log('[Fill It Baby] showGenericReview called with', Object.keys(data).length, 'data keys');
+  console.log('[Fill It Pro] showGenericReview called with', Object.keys(data).length, 'data keys');
   hideStatus();
   uploadSection.hidden = true;
   genericReview.hidden = false;
@@ -584,7 +584,7 @@ function showGenericReview(data, template) {
   container.innerHTML = '';
 
   const textFields = template.fields.filter(f => f.type === 'text');
-  console.log('[Fill It Baby] Text fields:', textFields.length);
+  console.log('[Fill It Pro] Text fields:', textFields.length);
 
   textFields.forEach(f => {
     const div = document.createElement('div');
@@ -669,7 +669,7 @@ document.getElementById('gen-generate-btn').addEventListener('click', async () =
       const val = input.value.trim();
       if (fieldName && val) {
         try { form.getTextField(fieldName).setText(val); }
-        catch (e) { console.warn('[Fill It Baby] Could not set:', fieldName); }
+        catch (e) { console.warn('[Fill It Pro] Could not set:', fieldName); }
       }
     });
 
@@ -678,7 +678,7 @@ document.getElementById('gen-generate-btn').addEventListener('click', async () =
       const fieldName = input.getAttribute('data-field-name');
       if (fieldName && input.checked) {
         try { form.getCheckBox(fieldName).check(); }
-        catch (e) { console.warn('[Fill It Baby] Could not check:', fieldName); }
+        catch (e) { console.warn('[Fill It Pro] Could not check:', fieldName); }
       }
     });
 
@@ -696,7 +696,8 @@ document.getElementById('gen-generate-btn').addEventListener('click', async () =
 
     showStatus('PDF generated! ✓', 'success');
   } catch (err) {
-    console.error('[Fill It Baby] Generic PDF generation error:', err);
+    console.error('[Fill It Pro] Generic PDF generation error:', err);
     showStatus('Error: ' + err.message, 'error');
   }
 });
+

@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**Fill It Baby** is a Chrome extension (Manifest V3) that extracts data from uploaded PDFs using the Claude API (vision) and auto-fills web forms. Built with vanilla JS — no build step, no bundler, no framework.
+**Fill It Pro** is a Chrome extension (Manifest V3) that extracts data from uploaded PDFs using the Claude API (vision) and auto-fills web forms. Built with vanilla JS — no build step, no bundler, no framework.
 
 ## Architecture
 
@@ -93,3 +93,4 @@ Selectors must match the actual DOM of the target page — inspect the page to g
 - **Content script isolation:** Content scripts run in an isolated world; they can access the page DOM but not page JS variables
 - **API key missing:** If Claude API calls fail, check that the user has set their key in the options page
 - **Form selectors wrong:** If fields don't fill, the CSS selectors in the form profile likely don't match the actual page; inspect the target page to verify
+
