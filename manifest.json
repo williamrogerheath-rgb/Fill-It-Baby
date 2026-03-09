@@ -1,15 +1,20 @@
 {
   "manifest_version": 3,
-  "name": "Fill It Baby",
+  "name": "Fill It Pro",
   "version": "1.0.0",
-  "description": "Extract data from PDFs using Claude API and auto-fill web forms.",
+  "description": "Auto-fill web forms and PDF templates from uploaded documents using AI.",
   "permissions": ["activeTab", "storage", "scripting"],
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
   "background": {
     "service_worker": "background.js"
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Fill It Baby"
+    "default_title": "Fill It Pro"
   },
   "options_page": "options.html",
   "content_scripts": [
