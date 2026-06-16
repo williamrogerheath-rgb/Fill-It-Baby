@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Fill It Pro",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Auto-fill web forms and PDF templates from uploaded documents using AI.",
   "permissions": ["activeTab", "storage"],
   "icons": {

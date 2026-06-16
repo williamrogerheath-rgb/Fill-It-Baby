@@ -3,6 +3,34 @@
 
 const CLAUDE_API_URL = 'https://api.anthropic.com/v1/messages';
 
+// === MODEL CONFIG ===
+// The model name is read from a hosted config file so it can be changed
+// without repackaging or resubmitting the extension. If the file is ever
+// unreachable, we fall back to the last value that worked, then to a default.
+const MODEL_CONFIG_URL = 'https://raw.githubusercontent.com/williamrogerheath-rgb/Fill-It-Baby/claude/claude-md-mla5743v02p3xm1q-Y49I2/model-config.json';
+const FALLBACK_MODEL = 'claude-sonnet-4-6';
+
+async function getModel() {
+  try {
+    const response = await fetch(MODEL_CONFIG_URL, { cache: 'no-store' });
+    if (response.ok) {
+      const config = await response.json();
+      if (config && typeof config.model === 'string' && config.model.trim()) {
+        const model = config.model.trim();
+        chrome.storage.local.set({ cachedModel: model });
+        return model;
+      }
+    }
+  } catch (e) {
+    // network error — fall through to cached value, then default
+  }
+  try {
+    const { cachedModel } = await chrome.storage.local.get('cachedModel');
+    if (cachedModel) return cachedModel;
+  } catch (e) {}
+  return FALLBACK_MODEL;
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // Support both old format (action: 'extractPdf') and new format (type: 'extractPdf')
   const action = message.action || message.type;
@@ -98,6 +126,8 @@ async function callClaudeApi(apiKey, pdfBase64, mode, tabUrl, template, template
     ];
   }
 
+  const model = await getModel();
+
   const response = await fetch(CLAUDE_API_URL, {
     method: 'POST',
     headers: {
@@ -107,7 +137,7 @@ async function callClaudeApi(apiKey, pdfBase64, mode, tabUrl, template, template
       'anthropic-dangerous-direct-browser-access': 'true'
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
+      model: model,
       max_tokens: 4096,
       messages: [
         {
